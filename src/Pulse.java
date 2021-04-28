@@ -44,13 +44,17 @@ public class Pulse implements Runnable{
 
     public void pacControl(){
         if(Map.maze[Main.pg.pathx][Main.pg.pathy]==5){Main.Eat=1;Map.maze[Main.pg.pathx][Main.pg.pathy]=0;Main.score=Main.score+50;} //Se mangia la palla grossa lui può mangiare i fantasmi e la palla diventa uno spazio vuoto 0
-        else if(Map.maze[Main.pg.pathx][Main.pg.pathy]==4){Map.maze[Main.pg.pathx][Main.pg.pathy]=0;Main.score=Main.score+10;}
+        else if(Map.maze[Main.pg.pathx][Main.pg.pathy]==4){
+            Map.maze[Main.pg.pathx][Main.pg.pathy]=0;Main.score=Main.score+10;}
         else if(Map.maze[Main.pg.pathx][Main.pg.pathy]==2){Map.maze[Main.pg.pathx][Main.pg.pathy]=3;Main.score=Main.score+10;}
         //Controllo Morte
         for(int i=0;i<4;i++){
             if(Main.ne[i].pathy==Main.pg.pathy&&Main.ne[i].pathx==Main.pg.pathx){
                 if(Main.Eat==1)
-                    Main.ne[i].Fuga();
+                {
+                    //Setto una variabile che possono vedere tutti i nemici
+                    //in questo modo possono tornare a casa mangiati e uscirne interi
+                }
                 else
                     Main.gOver=true;
             }}

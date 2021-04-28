@@ -1,4 +1,5 @@
 import java.awt.image.BufferedImage;
+import java.time.Clock;
 public class Ne implements Runnable {
     public int pathx,pathy;
     public int bornx,borny; //Queste variabili serviranno per rigenerare il thread
@@ -8,6 +9,10 @@ public class Ne implements Runnable {
     public BufferedImage[] i=new BufferedImage[13];
     public BufferedImage n;
     private Boolean c=true;
+    private Boolean d=true;
+    private Clock clock=Clock.systemDefaultZone();
+    //Serve per quando il fantasma deve flashare di bianco
+    private long checkms=0;
     private boolean nuovo,uscito;
     private String color;
     private char ldir;	//last direction (l'ultima rotta che ha preso il png)
@@ -159,6 +164,8 @@ this.start=false;
     }
 
     public char Follow(int x,int y) {
+        //AGGIUNGERE ALGORITMO BACKTRACKING PER TROVARE STRADA MIGLIORE
+        //OPPURE QUALUNQUE ALTRO ALGORITMO CHE SOSTITUISCA 'STA SCHIFEZZA
         try{
             if(Map.maze[pathx+1][pathy]!=1&&pathx<x){
                 return('d');
@@ -374,6 +381,12 @@ this.start=false;
         else if(Pulse.situation==1){
             blueSprite();
         }
+        else{
+            //Se situation==2
+            //Lo si da per scontato quindi
+            //Evito di fare un if
+            whiteSprite();
+        }
 
 
     }
@@ -407,6 +420,49 @@ this.start=false;
         }
     }
 
+    public void whiteSprite(){
+        //Ogni 500 ms cambio colore, da bianco a blu
+        //E' la prima volta che entro?
+        if(checkms==0){
+            checkms= clock.millis();
+            c=true;
+
+        }else{
+            if((clock.millis()-checkms)<200){
+                //se devo cambiare colore, se d==true,faccio l'animazione del bianco altrimenti
+                // divento blue
+                if(d) {
+                    if (c) {
+                        n = i[10];
+                        c = !c;
+                    } else {
+                        n = i[11];
+                        c = !c;
+                    }
+                }else{
+                    if (c) {
+                        n = i[8];
+                        c = !c;
+                    } else {
+                        n = i[9];
+                        c = !c;
+                    }
+                }
+            }else{
+                //Quando finisco l'animazione di un colore, resetto checkms
+                //e cambio la variabile per il colore
+                checkms=clock.millis();
+                d=!d;
+            }
+
+
+        }
+    }
+
+
+
+    //DA SISTEMARE
+    //Prima di sistemare questo metodo, probabilmente bisogna sistemare il metodo Follow
     public void Fuga(){
         while(((pathx!=13)||(pathx!=14))&&(pathy!=13))
             Follow(13,13);
