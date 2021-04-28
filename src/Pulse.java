@@ -10,17 +10,12 @@ public class Pulse implements Runnable{
     public long almostEatableMillis;
     public long pulseWhite;
     static int situation=0; //0-Nothing  1-Blue  2-Pulsing White-Blue
-    private BufferedImage[] i=new BufferedImage[4];
 
     public Pulse(){
 
     }
 
     public void run(){
-        i[0]=Main.img.getSubimage(132,65,14,14);
-        i[1]=Main.img.getSubimage(148,65,14,14);
-        i[2]=Main.img.getSubimage(164,65,14,14);
-        i[3]=Main.img.getSubimage(180,65,14,14);
         dotMillis=clock.millis();
         almostEatableMillis=0;
         pulseWhite=0;
@@ -43,10 +38,10 @@ public class Pulse implements Runnable{
 
 
     public void pacControl(){
-        if(Map.maze[Main.pg.pathx][Main.pg.pathy]==5){Main.Eat=1;Map.maze[Main.pg.pathx][Main.pg.pathy]=0;Main.score=Main.score+50;} //Se mangia la palla grossa lui può mangiare i fantasmi e la palla diventa uno spazio vuoto 0
-        else if(Map.maze[Main.pg.pathx][Main.pg.pathy]==4){
-            Map.maze[Main.pg.pathx][Main.pg.pathy]=0;Main.score=Main.score+10;}
-        else if(Map.maze[Main.pg.pathx][Main.pg.pathy]==2){Map.maze[Main.pg.pathx][Main.pg.pathy]=3;Main.score=Main.score+10;}
+        if(Map.maze[Main.pg.pathy][Main.pg.pathx]==5){Main.Eat=1;Map.maze[Main.pg.pathy][Main.pg.pathx]=0;Main.score=Main.score+50;} //Se mangia la palla grossa lui può mangiare i fantasmi e la palla diventa uno spazio vuoto 0
+        else if(Map.maze[Main.pg.pathy][Main.pg.pathx]==4){
+            Map.maze[Main.pg.pathy][Main.pg.pathx]=0;Main.score=Main.score+10;}
+        else if(Map.maze[Main.pg.pathy][Main.pg.pathx]==2){Map.maze[Main.pg.pathy][Main.pg.pathx]=3;Main.score=Main.score+10;}
         //Controllo Morte
         for(int i=0;i<4;i++){
             if(Main.ne[i].pathy==Main.pg.pathy&&Main.ne[i].pathx==Main.pg.pathx){
@@ -54,6 +49,7 @@ public class Pulse implements Runnable{
                 {
                     //Setto una variabile che possono vedere tutti i nemici
                     //in questo modo possono tornare a casa mangiati e uscirne interi
+                    Main.ne[i].eated=true;
                 }
                 else
                     Main.gOver=true;

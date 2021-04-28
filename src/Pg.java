@@ -66,7 +66,7 @@ public class Pg implements Runnable{
             //UFFA!
 
 
-            if(Map.maze[pathx+1][pathy]!=1&&!Main.gOver){
+            if(Map.maze[pathy][pathx+1]!=1&&!Main.gOver){
                 Direction='d';
                 Trans('d');
             }
@@ -88,7 +88,7 @@ public class Pg implements Runnable{
             } else {
                 //UFFA!
 
-                if (Map.maze[pathx - 1][pathy] != 1 && !Main.gOver) {
+                if (Map.maze[pathy][pathx - 1] != 1 && !Main.gOver) {
                     Direction = 'a';
                     Trans('a');
                 }
@@ -97,14 +97,14 @@ public class Pg implements Runnable{
     }
 
     public void MoveUp(){
-        if(Map.maze[pathx][pathy-1]!=1&&!Main.gOver){
+        if(Map.maze[pathy-1][pathx]!=1&&!Main.gOver){
             Direction='w';
             Trans('w');
         }
     }
 
     public void MoveDw(){
-        if(Map.maze[pathx][pathy+1]!=1&&!Main.gOver){
+        if(Map.maze[pathy+1][pathx]!=1&&!Main.gOver){
             Direction='s';
             Trans('s');
         }
@@ -377,22 +377,22 @@ public class Pg implements Runnable{
     public Boolean ControlloDir(char dir){
         switch(dir){
             case 'w': {
-                if(Map.maze[pathx][pathy-1]!=1&&!Main.gOver){
+                if(Map.maze[pathy-1][pathx]!=1&&!Main.gOver){
                     return true;
                 }
             }break;
             case 'a': {
-                if(Map.maze[pathx-1][pathy]!=1&&!Main.gOver){
+                if(Map.maze[pathy][pathx-1]!=1&&!Main.gOver){
                     return true;
                 }
             }break;
             case 's': {
-                if(Map.maze[pathx][pathy+1]!=1&&!Main.gOver){
+                if(Map.maze[pathy+1][pathx]!=1&&!Main.gOver){
                     return true;
                 }
             }break;
             case 'd': {
-                if (Map.maze[pathx + 1][pathy] != 1 && !Main.gOver) {
+                if (Map.maze[pathy][pathx + 1] != 1 && !Main.gOver) {
                     return true;
                 }
             }

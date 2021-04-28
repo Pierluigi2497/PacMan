@@ -7,6 +7,7 @@ public class Ne implements Runnable {
     public int tX=0;  //Translate x
     public int tY=0;  //Translate y
     public BufferedImage[] i=new BufferedImage[13];
+    public BufferedImage[] dead=new BufferedImage[4];
     public BufferedImage n;
     private Boolean c=true;
     private Boolean d=true;
@@ -21,6 +22,7 @@ public class Ne implements Runnable {
     public boolean ready=true;
     //variabile gestita da Pg per rigenerare Ne
     public boolean start=true;
+    public boolean eated=false;
 
     public Ne(int x,int y,String a){
         bornx=x;
@@ -83,6 +85,11 @@ public class Ne implements Runnable {
         i[10]=Main.img.getSubimage(164,65,14,14);
         i[11]=Main.img.getSubimage(180,65,14,14);
         i[12]=Main.img.getSubimage(0,0,1,1);
+        //Immagini per la morte dei fantasmini
+        dead[0]=Main.img.getSubimage(132,81,14,14);
+        dead[1]=Main.img.getSubimage(148,81,14,14);
+        dead[2]=Main.img.getSubimage(164,81,14,14);
+        dead[3]=Main.img.getSubimage(180,81,14,14);
         //n=i[0];
     }
 
@@ -91,7 +98,7 @@ public class Ne implements Runnable {
         //AZIONI PRELIMINARI
         if(nuovo){										//aggiungere nella mappa posizioni particolari "nodi/incroci" dove i nemici possono decidere di girare
             for(;uscito!=true;){corri(esci());}
-            Map.maze[13][12]=Map.maze[14][12]=1;
+            Map.maze[12][13]=Map.maze[12][14]=1;
             nuovo=false;}
         //corri(cieco());									//fa un ciclo di cieco per trovare la direzione in cui muoversi e andare in quella
         //SVOLGIMENTO
@@ -104,23 +111,31 @@ public class Ne implements Runnable {
                 n=i[12];
                 break;
             }
-
-            if(Map.maze[pathx][pathy]==2||Map.maze[pathx][pathy]==3){ //SE INCONTRA UNNODO
-                if(radar()&&Main.Eat==0){
-                    corri(Follow(Main.pg.pathx,Main.pg.pathy));
-                }
-                else{
-                    corri(cieco());
+            //L'oppure 4 è inserito solo per i nodi a 2 vie
+            //Probabilmente mettendo un != 1 funzionerebbe meglio
+            if(Map.maze[pathy][pathx]==2||Map.maze[pathy][pathx]==3||Map.maze[pathy][pathx]==4||Map.maze[pathy][pathx]==0){ //SE INCONTRA UNNODO
+                //Se non sono mangiabile e riesco a vedere Pacman OPPURE se non sono mangiato
+                if(eated){
+                    vel=135;
+                    corri(Follow(13,12));
+                }else{
+                    vel=250;
+                    if((radar()&&Main.Eat==0&&!eated)){
+                      corri(Follow(Main.pg.pathx,Main.pg.pathy));
+                    }
+                 else{
+                      corri(cieco());
+                  }
                 }
             }
-
-            if(radar()&&Main.Eat==0){
+            //System.out.println(Map.maze[pathx][pathy]);
+            /*if(radar()&&Main.Eat==0){
                 corri(Follow(Main.pg.pathx,Main.pg.pathy));
             }
             else{
                 corri(cieco());
 
-            }
+            }*/
 
 
             try{
@@ -143,7 +158,7 @@ this.start=false;
         for(;;){
             uscito=false;
             nuovo=true;
-            Map.maze[13][12]=Map.maze[14][12]=3;
+            Map.maze[12][13]=Map.maze[12][14]=3;
             //Quando Pg vuole, e tutti sono pronti, tutti i nemici si rigenerano
             if(!this.start){
                 try {
@@ -167,17 +182,17 @@ this.start=false;
         //AGGIUNGERE ALGORITMO BACKTRACKING PER TROVARE STRADA MIGLIORE
         //OPPURE QUALUNQUE ALTRO ALGORITMO CHE SOSTITUISCA 'STA SCHIFEZZA
         try{
-            if(Map.maze[pathx+1][pathy]!=1&&pathx<x){
+            if(Map.maze[pathy][pathx+1]!=1&&pathx<x){
                 return('d');
             }}catch(Exception e){return 'd';}
         try{
-            if(Map.maze[pathx-1][pathy]!=1&&pathx>x){
+            if(Map.maze[pathy][pathx-1]!=1&&pathx>x){
                 return('a');
             }}catch(Exception e){return 'a';}
-        if(Map.maze[pathx][pathy+1]!=1&&pathy<y){
+        if(Map.maze[pathy+1][pathx]!=1&&pathy<y){
             return('s');
         }
-        if(Map.maze[pathx][pathy-1]!=1&&pathy>y){
+        if(Map.maze[pathy-1][pathx]!=1&&pathy>y){
             return('w');
         }
         {return cieco();}
@@ -188,20 +203,20 @@ this.start=false;
         if(pathy==11){uscito=true;return 'o';}
 
 
-        if(Map.maze[pathx][pathy]==3){
+        if(Map.maze[pathy][pathx]==3){
             return('w');}
 
         else{
-            if(Map.maze[pathx][pathy-1]!=1&&pathy>11){
+            if(Map.maze[pathy-1][pathx]!=1&&pathy>11){
                 return('w');}
             else
-            if(Map.maze[pathx][pathy+1]!=1&&pathy<11){
+            if(Map.maze[pathy+1][pathx]!=1&&pathy<11){
                 return('s');}
             else
-            if(Map.maze[pathx+1][pathy]!=1&&pathx<13){
+            if(Map.maze[pathy][pathx+1]!=1&&pathx<13){
                 return('d');}
             else
-            if(Map.maze[pathx-1][pathy]!=1&&pathx>13){
+            if(Map.maze[pathy][pathx-1]!=1&&pathx>13){
                 return('a');}
         }
         return 'o';
@@ -217,18 +232,18 @@ this.start=false;
             d++;									//ricalcolo
             if((d%2)==0){
                 try{									//se di nuovo pari andrà a destra
-                    if(Map.maze[pathx+1][pathy]!=1)return 'd';}catch(Exception e){return 'd';}}
+                    if(Map.maze[pathy][pathx+1]!=1)return 'd';}catch(Exception e){return 'd';}}
             else
                 try{									//se è dispari andrà a sinistra
-                    if(Map.maze[pathx-1][pathy]!=1)return'a';}catch(Exception e){return 'a';}}
+                    if(Map.maze[pathy][pathx-1]!=1)return'a';}catch(Exception e){return 'a';}}
         else{										//se dispari si muoverà su asse y
             d=(int)(Math.random()*10);
             d++;									//ricalcolo
             if((d%2)==0){							//se pari andrà in su
-                if(Map.maze[pathx][pathy-1]!=1)return'w';
+                if(Map.maze[pathy-1][pathx]!=1)return'w';
             }
             else{									//se dispari andra in giù
-                if(Map.maze[pathx][pathy+1]!=1)return's';
+                if(Map.maze[pathy+1][pathx]!=1)return's';
             }
         }
         return 'o';
@@ -255,21 +270,22 @@ this.start=false;
             v=vel/Main.dY;
 
             if(dir=='w'){
-                while(Map.maze[pathx][pathy-1]!=1){
+                while(Map.maze[pathy-1][pathx]!=1){
                     for(tY=0;Math.abs(tY)!=Main.dY;tY--){
                         aSprite(dir);
                         if(Main.gOver)
                             return ;
+
                         try{Thread.sleep(v);}catch(Exception e){}
                     }
                     tY=0;
                     pathy--;
-                    if(Map.maze[pathx][pathy]==2||Map.maze[pathx][pathy]==3)
+                    if(Map.maze[pathy][pathx]==2||Map.maze[pathy][pathx]==3)
                         break;}
 
             }
             else{
-                while(Map.maze[pathx][pathy+1]!=1){
+                while(Map.maze[pathy+1][pathx]!=1){
                     for(tY=0;Math.abs(tY)!=Main.dY;tY++){
                         aSprite(dir);
                         if(Main.gOver)
@@ -278,7 +294,7 @@ this.start=false;
                     }
                     tY=0;
                     pathy++;
-                    if(Map.maze[pathx][pathy]==2||Map.maze[pathx][pathy]==3)
+                    if(Map.maze[pathy][pathx]==2||Map.maze[pathy][pathx]==3)
                         break;
                 }
 
@@ -288,7 +304,7 @@ this.start=false;
             v=vel/Main.dX;
             if(dir=='a'){
                 try{
-                    while(Map.maze[pathx-1][pathy]!=1){
+                    while(Map.maze[pathy][pathx-1]!=1){
                         for(tX=0;Math.abs(tX)!=Main.dX;tX--){
                             aSprite(dir);
                             if(Main.gOver)
@@ -297,7 +313,7 @@ this.start=false;
                         }
                         tX=0;
                         pathx--;
-                        if(Map.maze[pathx][pathy]==2||Map.maze[pathx][pathy]==3)
+                        if(Map.maze[pathy][pathx]==2||Map.maze[pathy][pathx]==3)
                             break;
                     }
                 }catch(Exception e){
@@ -317,7 +333,7 @@ this.start=false;
             }
             else{
                 try{
-                    while(Map.maze[pathx+1][pathy]!=1){
+                    while(Map.maze[pathy][pathx+1]!=1){
                         for(tX=0;Math.abs(tX)!=Main.dX;tX++){
                             aSprite(dir);
                             if(Main.gOver)
@@ -326,7 +342,7 @@ this.start=false;
                         }
                         tX=0;
                         pathx++;
-                        if(Map.maze[pathx][pathy]==2||Map.maze[pathx][pathy]==3)
+                        if(Map.maze[pathy][pathx]==2||Map.maze[pathy][pathx]==3)
                             break;
                     }}catch(Exception e){
                     for(tX=0;Math.abs(tX)!=Main.dX;tX++){
@@ -343,8 +359,10 @@ this.start=false;
     }
 
     public void aSprite(char dir){
-        //e=eatable Mangiabile		q=Quasi Mangiabile
-
+        if(eated){
+            eatedSprite(dir);
+            return;
+        }
         if(Pulse.situation==0){
             switch(dir){
                 case 'w':{if(c){
@@ -378,14 +396,16 @@ this.start=false;
 
             }
         }
-        else if(Pulse.situation==1){
-            blueSprite();
-        }
         else{
-            //Se situation==2
-            //Lo si da per scontato quindi
-            //Evito di fare un if
-            whiteSprite();
+            if(Pulse.situation==1){
+                blueSprite();
+            }
+            else if(Pulse.situation==2){
+                //Se situation==2
+                //Lo si da per scontato quindi
+                //Evito di fare un if
+                whiteSprite();
+            }
         }
 
 
@@ -459,6 +479,14 @@ this.start=false;
         }
     }
 
+    public void eatedSprite(char dir){
+        switch (dir){
+            case 'w':{n=dead[2];}break;
+            case 'a':{n=dead[1];}break;
+            case 's':{n=dead[3];}break;
+            case 'd':{n=dead[0];}break;
+        }
+    }
 
 
     //DA SISTEMARE
