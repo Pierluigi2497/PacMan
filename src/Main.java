@@ -1,6 +1,3 @@
-import javax.print.DocFlavor;
-import javax.swing.JFrame;
-import javax.swing.JComponent;
 import java.awt.event.*;
 import java.awt.image.BufferedImage;
 import javax.imageio.*;
@@ -18,7 +15,6 @@ public class Main{
     static char cdir;
     static Boolean gOver =false;
     static BufferedImage map;
-    static BufferedImage Game;
     static BufferedImage Scritte;
     static int dots=0;
     static int Eat=0;
@@ -31,12 +27,13 @@ public class Main{
     static int score;
     static Boolean stop=false;
     static int Ngiocatori=4;
+    static int range=25;
+
     //Variabile statica per sincronizzare i nemici ed il Pacman
-    static int sync=4;
 
 
     public static void main(String[] args) {
-
+        new Map();
 
 
         try{img=ImageIO.read(new File("res/sheet.png"));

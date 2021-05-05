@@ -1,9 +1,14 @@
+import org.jgrapht.GraphPath;
+import org.jgrapht.alg.shortestpath.DijkstraShortestPath;
+import org.jgrapht.graph.DefaultEdge;
+
 import java.awt.image.BufferedImage;
 import java.time.Clock;
+import java.util.*;
 public class Ne implements Runnable {
     public int pathx,pathy;
     public int bornx,borny; //Queste variabili serviranno per rigenerare il thread
-    private int vel=250;
+    public int vel=250;
     public int tX=0;  //Translate x
     public int tY=0;  //Translate y
     public BufferedImage[] i=new BufferedImage[13];
@@ -11,18 +16,19 @@ public class Ne implements Runnable {
     public BufferedImage n;
     private Boolean c=true;
     private Boolean d=true;
+    public char ldir=' ';
     private Clock clock=Clock.systemDefaultZone();
     //Serve per quando il fantasma deve flashare di bianco
     private long checkms=0;
     private boolean nuovo,uscito;
     private String color;
-    private char ldir;	//last direction (l'ultima rotta che ha preso il png)
     //Serve per capire quando il fantasma è pronto per rigenerarsi
     //Serve alla class Pg
     public boolean ready=true;
     //variabile gestita da Pg per rigenerare Ne
     public boolean start=true;
     public boolean eated=false;
+    private DijkstraShortestPath<String, DefaultEdge> dijkstra;
 
     public Ne(int x,int y,String a){
         bornx=x;
@@ -37,6 +43,8 @@ public class Ne implements Runnable {
         color=a;
         pathx=x;
         pathy=y;
+        eated=false;
+        vel=250;
         nuovo=true;
         uscito=false;
         //0-1 Destra  2-3 Sinistra  4-5 Sopra  6-7 Sotto  8-9 Blu  10-11 Bianco-Blu  12 Trasparente
@@ -98,9 +106,19 @@ public class Ne implements Runnable {
         //AZIONI PRELIMINARI
         if(nuovo){										//aggiungere nella mappa posizioni particolari "nodi/incroci" dove i nemici possono decidere di girare
             for(;uscito!=true;){corri(esci());}
-            Map.maze[12][13]=Map.maze[12][14]=1;
-            nuovo=false;}
-        //corri(cieco());									//fa un ciclo di cieco per trovare la direzione in cui muoversi e andare in quella
+            Map.maze[12][13]=Map.maze[12][14]='6'; // Muro valicabile solo da morto
+            nuovo=false;
+            //Scelgo una direzione a caso (sx o dx)
+            //chiamo cieco() per scegliere una direzione a caso che non sia su o giu
+            int d;
+            d=(int)(Math.random()*10);
+            d++;
+            if(d%2==0){
+                corri('a');
+            }else{
+                corri('d');
+            }
+        }
         //SVOLGIMENTO
         for(;;){
             //MaingOver non è sincronizzato quindi alcuni fanno in tempo ad uscire ed altri no
@@ -113,29 +131,34 @@ public class Ne implements Runnable {
             }
             //L'oppure 4 è inserito solo per i nodi a 2 vie
             //Probabilmente mettendo un != 1 funzionerebbe meglio
-            if(Map.maze[pathy][pathx]==2||Map.maze[pathy][pathx]==3||Map.maze[pathy][pathx]==4||Map.maze[pathy][pathx]==0){ //SE INCONTRA UNNODO
+            if(Map.maze[pathy][pathx]=='2'||Map.maze[pathy][pathx]=='3'||Map.maze[pathy][pathx]=='4'||Map.maze[pathy][pathx]=='0'||Map.maze[pathy][pathx]=='7'){ //SE INCONTRA UNNODO
                 //Se non sono mangiabile e riesco a vedere Pacman OPPURE se non sono mangiato
                 if(eated){
-                    vel=135;
-                    corri(Follow(13,12));
+                    if(goToHome()) {
+                        this.start=true;
+                        this.ready=true;
+                        tX=0;
+                        tY=0;
+                        vel=250;
+                        nuovo=true;
+                        uscito=false;
+                        eated=false;
+                        return;
+                    }
                 }else{
-                    vel=250;
-                    if((radar()&&Main.Eat==0&&!eated)){
-                      corri(Follow(Main.pg.pathx,Main.pg.pathy));
+                    if((radar()&&Main.Eat==0)){
+                      corri(Follow(Main.pg.nodex,Main.pg.nodey));
                     }
                  else{
-                      corri(cieco());
+                     //Se sono mangiabile, fuggo
+                     //Altrimenti corro a cazzo
+                        if(Main.Eat==1)
+                            Fuga();
+                        else
+                            corri(cieco());
                   }
                 }
             }
-            //System.out.println(Map.maze[pathx][pathy]);
-            /*if(radar()&&Main.Eat==0){
-                corri(Follow(Main.pg.pathx,Main.pg.pathy));
-            }
-            else{
-                corri(cieco());
-
-            }*/
 
 
             try{
@@ -149,7 +172,7 @@ public class Ne implements Runnable {
         n=i[12];
         FirstLaunch(bornx,borny,color);
 
-this.start=false;
+        this.start=false;
         this.ready=true;
 
     }
@@ -158,7 +181,7 @@ this.start=false;
         for(;;){
             uscito=false;
             nuovo=true;
-            Map.maze[12][13]=Map.maze[12][14]=3;
+            Map.maze[12][13]=Map.maze[12][14]='3';
             //Quando Pg vuole, e tutti sono pronti, tutti i nemici si rigenerano
             if(!this.start){
                 try {
@@ -173,29 +196,64 @@ this.start=false;
             }
             else{
             n=i[0];
+            //Do qualche secondo di vantaggio
+            try {
+                Thread.sleep(1500);
+            }catch (Exception e){
+
+            }
             Life();
           }
         }
     }
 
+
+    //X-pacman Y-pacman X-fantasma Y-fantasma Distanza_percorsa Distanza_da_pacman
     public char Follow(int x,int y) {
-        //AGGIUNGERE ALGORITMO BACKTRACKING PER TROVARE STRADA MIGLIORE
-        //OPPURE QUALUNQUE ALTRO ALGORITMO CHE SOSTITUISCA 'STA SCHIFEZZA
-        try{
-            if(Map.maze[pathy][pathx+1]!=1&&pathx<x){
-                return('d');
-            }}catch(Exception e){return 'd';}
-        try{
-            if(Map.maze[pathy][pathx-1]!=1&&pathx>x){
-                return('a');
-            }}catch(Exception e){return 'a';}
-        if(Map.maze[pathy+1][pathx]!=1&&pathy<y){
-            return('s');
+        GraphPath<String,DefaultEdge> graphPath;
+        try{graphPath = dijkstra.findPathBetween(Map.graph,(pathy+","+pathx),(y+","+x));}
+        catch (IllegalArgumentException e){return cieco();}
+
+        //prendo solo il secondo elemento della lista di archi ritornata
+        //perchè il primo corrisponde a se stesso
+        //se riscontro un errore, vuol dire che il Pacman è di fronte a me
+        //quindi prendo il primo elemento
+        int gox;
+        int goy;
+        try {
+            gox = Integer.parseInt(graphPath.getVertexList().get(1).split(",")[1]);
+            goy = Integer.parseInt(graphPath.getVertexList().get(1).split(",")[0]);
+        }catch(Exception e){
+            gox = Integer.parseInt(graphPath.getVertexList().get(0).split(",")[1]);
+            goy = Integer.parseInt(graphPath.getVertexList().get(0).split(",")[0]);
         }
-        if(Map.maze[pathy-1][pathx]!=1&&pathy>y){
-            return('w');
+        //Se il fantasma si dovrebbe muovere sull'asse x, procedo con l'asse x altrimenti con y
+        if(gox!=pathx){
+            //Sopra o sotto
+            if(gox>pathx){
+                ldir='d';
+                return 'd';
+            }else{
+                ldir='a';
+                return 'a';
+            }
+        }else
+        if(goy!=pathy){
+            //Destra o sinistra
+            if(goy>pathy){
+                ldir='s';
+                return 's';
+            }else{
+                ldir='w';
+                return 'w';
+            }
         }
-        {return cieco();}
+        //Se sono a casa ritorno r e sono già spawnato
+        if((pathx==14&&pathy==14)&&nuovo==false)
+            return 'r';
+
+        //Se non so dove andare(sono nella direzione del tunnel), vado nell'ultima direzione presa
+        return cieco();
     }
 
 
@@ -203,20 +261,20 @@ this.start=false;
         if(pathy==11){uscito=true;return 'o';}
 
 
-        if(Map.maze[pathy][pathx]==3){
+        if(((pathx==13)||(pathx==14))){
             return('w');}
 
         else{
-            if(Map.maze[pathy-1][pathx]!=1&&pathy>11){
+            if(Map.maze[pathy-1][pathx]!='1'&&pathy>11){
                 return('w');}
             else
-            if(Map.maze[pathy+1][pathx]!=1&&pathy<11){
+            if(Map.maze[pathy+1][pathx]!='1'&&pathy<11){
                 return('s');}
             else
-            if(Map.maze[pathy][pathx+1]!=1&&pathx<13){
+            if(Map.maze[pathy][pathx+1]!='1'&&pathx<13){
                 return('d');}
             else
-            if(Map.maze[pathy][pathx-1]!=1&&pathx>13){
+            if(Map.maze[pathy][pathx-1]!='1'&&pathx>13){
                 return('a');}
         }
         return 'o';
@@ -227,34 +285,58 @@ this.start=false;
         int d;
         d=(int)(Math.random()*10);
         d++;					//d=decisione, numero casuale che determinerà la direzione del nemico in base a questi criteri:
+        //Il fantasma NON TORNA MAI INDIETRO
         if((d%2)==0){								//se pari si muoverà su asse x
             d=(int)(Math.random()*10);
             d++;									//ricalcolo
             if((d%2)==0){
-                try{									//se di nuovo pari andrà a destra
-                    if(Map.maze[pathy][pathx+1]!=1)return 'd';}catch(Exception e){return 'd';}}
-            else
-                try{									//se è dispari andrà a sinistra
-                    if(Map.maze[pathy][pathx-1]!=1)return'a';}catch(Exception e){return 'a';}}
-        else{										//se dispari si muoverà su asse y
+                try{
+                    //se di nuovo pari andrà a destra
+                    //se vengo da quella direzione, vado dall'altra parte
+                    if(ldir!='a'){
+                        if(Map.maze[pathy][pathx+1]!='1') {
+                            ldir='d';
+                            return 'd';
+                        }
+                    }
+                }catch(Exception e){ldir='d';return 'd';}
+            }
+                try {
+                    //se è dispari andrà a sinistra
+                    if (ldir != 'd') {
+                        if (Map.maze[pathy][pathx - 1] != '1')
+                            ldir='a';
+                            return 'a';
+                    }
+                }
+                catch(Exception e){ldir='a';return 'a';}
+        }
+        //se dispari si muoverà su asse y
             d=(int)(Math.random()*10);
             d++;									//ricalcolo
-            if((d%2)==0){							//se pari andrà in su
-                if(Map.maze[pathy-1][pathx]!=1)return'w';
+            if((d%2)==0){
+                //se pari andrà in su
+                if(ldir!='s') {
+                    if (Map.maze[pathy - 1][pathx] != '1'){
+                        ldir='w';
+                        return 'w';
+                    }
+                }
             }
-            else{									//se dispari andra in giù
-                if(Map.maze[pathy+1][pathx]!=1)return's';
+            //se dispari andra in giù
+            if(ldir!='w') {
+                if (Map.maze[pathy + 1][pathx] != '1'){
+                    ldir='s';
+                    return 's';
+                }
             }
-        }
         return 'o';
     }
 
     public boolean radar(){
-        int r;
-        r=50;			//range
 
         //Se rientra nel raggio
-        if(Math.abs(pathx-Main.pg.pathx)<(r/2)&&Math.abs(pathy-Main.pg.pathy)<(r/2))
+        if(Math.abs(pathx-Main.pg.pathx)<(Main.range/2)&&Math.abs(pathy-Main.pg.pathy)<(Main.range/2))
             return true;
         else
             return false;
@@ -270,7 +352,7 @@ this.start=false;
             v=vel/Main.dY;
 
             if(dir=='w'){
-                while(Map.maze[pathy-1][pathx]!=1){
+                while(Map.maze[pathy-1][pathx]!='1'){
                     for(tY=0;Math.abs(tY)!=Main.dY;tY--){
                         aSprite(dir);
                         if(Main.gOver)
@@ -280,12 +362,12 @@ this.start=false;
                     }
                     tY=0;
                     pathy--;
-                    if(Map.maze[pathy][pathx]==2||Map.maze[pathy][pathx]==3)
+                    if(Map.maze[pathy][pathx]=='2'||Map.maze[pathy][pathx]=='3')
                         break;}
 
             }
             else{
-                while(Map.maze[pathy+1][pathx]!=1){
+                while(Map.maze[pathy+1][pathx]!='1'){
                     for(tY=0;Math.abs(tY)!=Main.dY;tY++){
                         aSprite(dir);
                         if(Main.gOver)
@@ -294,7 +376,7 @@ this.start=false;
                     }
                     tY=0;
                     pathy++;
-                    if(Map.maze[pathy][pathx]==2||Map.maze[pathy][pathx]==3)
+                    if(Map.maze[pathy][pathx]=='2'||Map.maze[pathy][pathx]=='3')
                         break;
                 }
 
@@ -304,7 +386,7 @@ this.start=false;
             v=vel/Main.dX;
             if(dir=='a'){
                 try{
-                    while(Map.maze[pathy][pathx-1]!=1){
+                    while(Map.maze[pathy][pathx-1]!='1'){
                         for(tX=0;Math.abs(tX)!=Main.dX;tX--){
                             aSprite(dir);
                             if(Main.gOver)
@@ -313,12 +395,13 @@ this.start=false;
                         }
                         tX=0;
                         pathx--;
-                        if(Map.maze[pathy][pathx]==2||Map.maze[pathy][pathx]==3)
+                        //Se incontro un incrocio, esco dalla transizione e vedo quale direzione prendere
+                        //Esco pure se incontro un 7(Punto di rigenerazione) perchè il fantasmino deve uscire da casa
+                        if(Map.maze[pathy][pathx]=='2'||Map.maze[pathy][pathx]=='3'||Map.maze[pathy][pathx]=='7')
                             break;
                     }
                 }catch(Exception e){
-                    //Sono qui perchè sono uscito dalla mappa, se ho preso un tunnel, mi teletrasporto altrimento ti
-                    //banno perchè usi i cheat
+                    //Sono qui perchè sono uscito dalla mappa, se ho preso un tunnel, mi teletrasporto
                     if(pathx==0){
 
                     }
@@ -333,7 +416,7 @@ this.start=false;
             }
             else{
                 try{
-                    while(Map.maze[pathy][pathx+1]!=1){
+                    while(Map.maze[pathy][pathx+1]!='1'){
                         for(tX=0;Math.abs(tX)!=Main.dX;tX++){
                             aSprite(dir);
                             if(Main.gOver)
@@ -342,7 +425,7 @@ this.start=false;
                         }
                         tX=0;
                         pathx++;
-                        if(Map.maze[pathy][pathx]==2||Map.maze[pathy][pathx]==3)
+                        if(Map.maze[pathy][pathx]=='2'||Map.maze[pathy][pathx]=='3'||Map.maze[pathy][pathx]=='7')
                             break;
                     }}catch(Exception e){
                     for(tX=0;Math.abs(tX)!=Main.dX;tX++){
@@ -416,6 +499,7 @@ this.start=false;
 
         //Valori Direzione:
         //w=su  d=destra  s=giù  a=sinistra
+
         switch(direzione){
             case 'w':{Trans('w');}break;
 
@@ -492,49 +576,17 @@ this.start=false;
     //DA SISTEMARE
     //Prima di sistemare questo metodo, probabilmente bisogna sistemare il metodo Follow
     public void Fuga(){
-        while(((pathx!=13)||(pathx!=14))&&(pathy!=13))
-            Follow(13,13);
-        /*
-        if(color=="red"){
-            i[0]=Main.img.getSubimage(4,65,14,14);
-            i[1]=Main.img.getSubimage(20,65,14,14);
-            i[2]=Main.img.getSubimage(36,65,14,14);
-            i[3]=Main.img.getSubimage(52,65,14,14);
-            i[4]=Main.img.getSubimage(68,65,14,14);
-            i[5]=Main.img.getSubimage(84,65,14,14);
-            i[6]=Main.img.getSubimage(100,65,14,14);
-            i[7]=Main.img.getSubimage(116,65,14,14);
-        }
-        else if(color=="pink"){
-            i[0]=Main.img.getSubimage(4,81,14,14);
-            i[1]=Main.img.getSubimage(20,81,14,14);
-            i[2]=Main.img.getSubimage(36,81,14,14);
-            i[3]=Main.img.getSubimage(52,81,14,14);
-            i[4]=Main.img.getSubimage(68,81,14,14);
-            i[5]=Main.img.getSubimage(84,81,14,14);
-            i[6]=Main.img.getSubimage(100,81,14,14);
-            i[7]=Main.img.getSubimage(116,81,14,14);
-        }
-        else if(color=="blue"){
-            i[0]=Main.img.getSubimage(4,97,14,14);
-            i[1]=Main.img.getSubimage(20,97,14,14);
-            i[2]=Main.img.getSubimage(36,97,14,14);
-            i[3]=Main.img.getSubimage(52,97,14,14);
-            i[4]=Main.img.getSubimage(68,97,14,14);
-            i[5]=Main.img.getSubimage(84,97,14,14);
-            i[6]=Main.img.getSubimage(100,97,14,14);
-            i[7]=Main.img.getSubimage(116,97,14,14);
-        }
-        else if(color=="yellow"){
-            i[0]=Main.img.getSubimage(4,113,14,14);
-            i[1]=Main.img.getSubimage(20,113,14,14);
-            i[2]=Main.img.getSubimage(36,113,14,14);
-            i[3]=Main.img.getSubimage(52,113,14,14);
-            i[4]=Main.img.getSubimage(68,113,14,14);
-            i[5]=Main.img.getSubimage(84,113,14,14);
-            i[6]=Main.img.getSubimage(100,113,14,14);
-            i[7]=Main.img.getSubimage(116,113,14,14);
-        }*/
+        corri(cieco());
+    }
+
+    public boolean goToHome(){
+        char c=Follow(14,14);
+        //Se Follow ritorna 'r' ovvero, che è arrivato a casa
+        //ritorno true, quindi rigenero il fantasma senza cambiare la sua posizione
+        if(c=='r')
+            return true;
+        corri(c);
+        return false;
     }
 
 }

@@ -1,5 +1,3 @@
-import java.awt.image.BufferedImage;
-import java.io.Serial;
 import java.time.Clock;
 
 public class Pulse implements Runnable{
@@ -12,7 +10,6 @@ public class Pulse implements Runnable{
     static int situation=0; //0-Nothing  1-Blue  2-Pulsing White-Blue
 
     public Pulse(){
-
     }
 
     public void run(){
@@ -38,18 +35,29 @@ public class Pulse implements Runnable{
 
 
     public void pacControl(){
-        if(Map.maze[Main.pg.pathy][Main.pg.pathx]==5){Main.Eat=1;Map.maze[Main.pg.pathy][Main.pg.pathx]=0;Main.score=Main.score+50;} //Se mangia la palla grossa lui può mangiare i fantasmi e la palla diventa uno spazio vuoto 0
-        else if(Map.maze[Main.pg.pathy][Main.pg.pathx]==4){
-            Map.maze[Main.pg.pathy][Main.pg.pathx]=0;Main.score=Main.score+10;}
-        else if(Map.maze[Main.pg.pathy][Main.pg.pathx]==2){Map.maze[Main.pg.pathy][Main.pg.pathx]=3;Main.score=Main.score+10;}
+        //Se mangia la palla grossa lui può mangiare i fantasmi e la palla diventa uno spazio vuoto 0
+        if(Map.maze[Main.pg.pathy][Main.pg.pathx]=='5'){
+            Main.Eat=1;Map.maze[Main.pg.pathy][Main.pg.pathx]='0';Main.score=Main.score+50;
+            //Quando mangio la palla grossa, resetto ldir così i fantasmi si possono girare indietro
+            //Imposto una velocità più alta(più alto il valore, più lenti sono i fantasmi)
+            for(int i=0;i<Main.Ngiocatori;i++){
+                Main.ne[i].ldir=' ';
+                Main.ne[i].vel=350;
+            }
+        }
+        else if(Map.maze[Main.pg.pathy][Main.pg.pathx]=='4'){
+            Map.maze[Main.pg.pathy][Main.pg.pathx]='0';Main.score=Main.score+10;}
+        else if(Map.maze[Main.pg.pathy][Main.pg.pathx]=='2'){Map.maze[Main.pg.pathy][Main.pg.pathx]='3';Main.score=Main.score+10;}
         //Controllo Morte
         for(int i=0;i<4;i++){
-            if(Main.ne[i].pathy==Main.pg.pathy&&Main.ne[i].pathx==Main.pg.pathx){
+            if(Main.ne[i].pathy==Main.pg.pathy&&Main.ne[i].pathx==Main.pg.pathx&&!Main.ne[i].eated){
                 if(Main.Eat==1)
                 {
                     //Setto una variabile che possono vedere tutti i nemici
                     //in questo modo possono tornare a casa mangiati e uscirne interi
                     Main.ne[i].eated=true;
+                    Main.ne[i].vel=135;
+                    Main.score+=100;
                 }
                 else
                     Main.gOver=true;
@@ -79,7 +87,6 @@ public class Pulse implements Runnable{
                 eatableMillis=clock.millis();
                 situation=1;
             }
-            System.out.println(clock.millis()-eatableMillis);
             if((clock.millis()-eatableMillis)<4000){
                 //Se non sono passati ancora 4 secondi, i fantasmi devono essere blu
                 //La classe Ne gestisce il colore
@@ -95,43 +102,4 @@ public class Pulse implements Runnable{
             }
         }
     }
-
-    /*
-    public void notSureEatable(){
-        if(pulseWhite==0){
-            pulseWhite=clock.millis();
-        }
-        if(almostEatableMillis==0){
-            almostEatableMillis=clock.millis();
-        }
-        if((clock.millis()-pulseWhite)>350){
-            if(c==true){
-                c=false;
-
-                for(int i=0;i<4;i++){
-                    Main.ne[i].i[8]=this.i[2];
-                    Main.ne[i].i[9]=this.i[3];
-                }
-            }
-            else if(c==false){
-                c=true;
-                for(int i=0;i<4;i++){
-                    Main.ne[i].i[8]=this.i[0];
-                    Main.ne[i].i[9]=this.i[1];
-                }
-
-            }
-            pulseWhite=0;
-
-        }
-        if((clock.millis()-almostEatableMillis)>2000){
-            for(int i=0;i<4;i++){
-                Main.ne[i].i[8]=this.i[0];
-                Main.ne[i].i[9]=this.i[1];
-            }
-            situation=0;
-        }
-    }
-*/
-
 }

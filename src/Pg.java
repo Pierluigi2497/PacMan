@@ -2,6 +2,7 @@ import java.awt.image.BufferedImage;
 
 public class Pg implements Runnable{
     public int pathx,pathy;
+    public char nodex,nodey;
     public int tX=0;  //Translate x
     public int tY=0;  //Translate y
     public int vel=200;//Inversa in ms
@@ -21,7 +22,8 @@ public class Pg implements Runnable{
     public void FirstLunch(int x,int y){
         pathx=x;
         pathy=y;
-
+        nodex=6;
+        nodey=8;
 
 
         pac[0]=Main.img.getSubimage(36,1,13,13);
@@ -66,7 +68,7 @@ public class Pg implements Runnable{
             //UFFA!
 
 
-            if(Map.maze[pathy][pathx+1]!=1&&!Main.gOver){
+            if(Map.maze[pathy][pathx+1]!='1'&&!Main.gOver){
                 Direction='d';
                 Trans('d');
             }
@@ -88,7 +90,7 @@ public class Pg implements Runnable{
             } else {
                 //UFFA!
 
-                if (Map.maze[pathy][pathx - 1] != 1 && !Main.gOver) {
+                if (Map.maze[pathy][pathx - 1] != '1' && !Main.gOver) {
                     Direction = 'a';
                     Trans('a');
                 }
@@ -97,14 +99,14 @@ public class Pg implements Runnable{
     }
 
     public void MoveUp(){
-        if(Map.maze[pathy-1][pathx]!=1&&!Main.gOver){
+        if(Map.maze[pathy-1][pathx]!='1'&&!Main.gOver){
             Direction='w';
             Trans('w');
         }
     }
 
     public void MoveDw(){
-        if(Map.maze[pathy+1][pathx]!=1&&!Main.gOver){
+        if(Map.maze[pathy+1][pathx]!='1'&&!Main.gOver){
             Direction='s';
             Trans('s');
         }
@@ -154,7 +156,11 @@ public class Pg implements Runnable{
             if (Main.stop){
                 return;
             }
-
+            //Se sono ad un incrocio, aggiorno nodex e nodey
+            if(Map.maze[pathy][pathx]=='2'||Map.maze[pathy][pathx]=='3'){
+                nodex=(char)pathx;
+                nodey=(char)pathy;
+            }
             switch(Main.cdir){
                 case 'a':{
                     MoveSx();
@@ -194,12 +200,6 @@ public class Pg implements Runnable{
 
     //Aumenta i pixel di un quadrato di array grafico(la grandezza di uno spostamento reale) per creare una transizione
     public void Trans(char dir){
-
-        //BUG VISIVO!!!!!
-        //SE SI CAMBIA VELOCEMENTE DIREZIONE SONO CAZZI
-        //FIXED
-
-
         int v=8;
         if(dir=='w'||dir=='s'){
             if(dir=='w'){
@@ -377,22 +377,22 @@ public class Pg implements Runnable{
     public Boolean ControlloDir(char dir){
         switch(dir){
             case 'w': {
-                if(Map.maze[pathy-1][pathx]!=1&&!Main.gOver){
+                if(Map.maze[pathy-1][pathx]!='1'&&!Main.gOver){
                     return true;
                 }
             }break;
             case 'a': {
-                if(Map.maze[pathy][pathx-1]!=1&&!Main.gOver){
+                if(Map.maze[pathy][pathx-1]!='1'&&!Main.gOver){
                     return true;
                 }
             }break;
             case 's': {
-                if(Map.maze[pathy+1][pathx]!=1&&!Main.gOver){
+                if(Map.maze[pathy+1][pathx]!='1'&&!Main.gOver){
                     return true;
                 }
             }break;
             case 'd': {
-                if (Map.maze[pathy][pathx + 1] != 1 && !Main.gOver) {
+                if (Map.maze[pathy][pathx + 1] != '1' && !Main.gOver) {
                     return true;
                 }
             }

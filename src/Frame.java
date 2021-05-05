@@ -1,24 +1,10 @@
 import javax.swing.JFrame;
-import javax.swing.JComponent;
 import javax.swing.JPanel;
-
 import java.awt.image.BufferedImage;
-import javax.imageio.*;
-
-import java.awt.event.KeyAdapter;
-import java.awt.event.KeyEvent;
-import java.awt.event.KeyListener;
 import java.awt.*;
-import java.awt.Font;
 
 public class Frame extends JPanel implements Runnable {
-
-
-
-
-    static Map map=new Map();
     public JFrame f=new JFrame();
-    private BufferedImage image;
     private BufferedImage dot;
     static BufferedImage Dot;
     private int i;//Controllo per score
@@ -53,11 +39,11 @@ public class Frame extends JPanel implements Runnable {
         //Disegno Palline
         for(int i=0;i<Map.y;i++)
             for(int l=0;l<Map.x;l++)
-                if(Map.maze[i][l]==2||Map.maze[i][l]==4) {
+                if(Map.maze[i][l]=='2'||Map.maze[i][l]=='4') {
                     Main.dots++;
                     g.drawImage(dot,Main.dX*l,Main.dY*i,Main.dX,Main.dY,null);
                 }
-                else if(Map.maze[i][l]==5){
+                else if(Map.maze[i][l]=='5'){
                     Main.dots++;
                     g.drawImage(Dot,Main.dX*l,Main.dY*i,Main.dX,Main.dY,null);
                 }
@@ -77,10 +63,6 @@ public class Frame extends JPanel implements Runnable {
         if(Main.gOver)
             g.drawImage(Main.s[10],(this.getWidth() / 2)-85,(this.getHeight() / 2)-38,169,17,null);
 
-        //g.setFont(Font.getFont("PressStart2P-Regular.ttf"));
-        //g.setColor(Color.WHITE);
-        //g.drawString("CIAO",10,10);
-
     }
 
 
@@ -90,10 +72,5 @@ public class Frame extends JPanel implements Runnable {
         Main.dX=(Main.f.getWidth()/Map.x);
 
         Main.dY=(Main.f.getHeight()/Map.y);
-
-
     }
-
-
-
 }
