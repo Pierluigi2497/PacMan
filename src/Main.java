@@ -1,6 +1,7 @@
 import java.awt.event.*;
 import java.awt.image.BufferedImage;
 import javax.imageio.*;
+import javax.swing.*;
 import java.awt.*;
 import java.io.File;
 
@@ -20,6 +21,9 @@ public class Main{
     static int Eat=0;
     static int dX;
     static int dY;
+    static int trueHeight;
+    static int trueWidth;
+    static int startx,starty;
     static Pulse pulse;
     static Thread pul;
     static BufferedImage[] s=new BufferedImage[11];
@@ -65,12 +69,31 @@ public class Main{
         pulse=new Pulse();
         pul=new Thread(pulse);
         p=new Thread(pg);
+    //    f.f.setSize(644,742);
+
+        f.f.setResizable(false);
+        f.f.setExtendedState(JFrame.MAXIMIZED_BOTH);
+        f.f.setUndecorated(true);
         f.f.setVisible(true);
-        f.f.setSize(616,713);
-        dX=(f.f.getWidth()/Map.x);
+
+        //Dimensioni in pixel di un quadrato
+        //Il disegno inizia da ((f.f.getWidth()-(f.f.getHeight()*0.90))/2)
+        //Quindi moltiplicando x2 ottengo lo schermo senza il disegno
+        //Sottraendo quel valore al max schermo, ottengo la dimensione del gioco in larghezza
+        double dimGame= (f.f.getWidth()-(f.f.getHeight()*0.90));
+
+
+
         dY=(f.f.getHeight()/Map.y);
+        dX=dY;
+        trueHeight=dY*Map.y;
+        trueWidth=dX*Map.x;
+        startx=(f.f.getWidth()-trueWidth)/2;
+        starty=(f.f.getHeight()-trueHeight)/2;
+
         f.f.add(f);
         f.f.setBackground(Color.BLACK);
+        f.f.getContentPane().setBackground(Color.BLACK);
         f.f.addKeyListener(new KeyAdapter() {
             public void keyTyped(KeyEvent e) {
                 cdir=e.getKeyChar();

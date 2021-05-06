@@ -1,10 +1,9 @@
+//I FANTASMI NON SONO BEN SINCRONIZZATI CON IL REPAINT, A CAUSA DI CIO L'ANIMAZIONE NON E BELLISSIMA
 import org.jgrapht.GraphPath;
 import org.jgrapht.alg.shortestpath.DijkstraShortestPath;
 import org.jgrapht.graph.DefaultEdge;
-
 import java.awt.image.BufferedImage;
 import java.time.Clock;
-import java.util.*;
 public class Ne implements Runnable {
     public int pathx,pathy;
     public int bornx,borny; //Queste variabili serviranno per rigenerare il thread
@@ -349,11 +348,10 @@ public class Ne implements Runnable {
 
 
         if(dir=='w'||dir=='s'){
-            v=vel/Main.dY;
-
+            v=(int)(vel/Main.dY);
             if(dir=='w'){
                 while(Map.maze[pathy-1][pathx]!='1'){
-                    for(tY=0;Math.abs(tY)!=Main.dY;tY--){
+                    for(tY=0;Math.abs(tY)!=(int)Main.dY;tY--){
                         aSprite(dir);
                         if(Main.gOver)
                             return ;
@@ -368,7 +366,7 @@ public class Ne implements Runnable {
             }
             else{
                 while(Map.maze[pathy+1][pathx]!='1'){
-                    for(tY=0;Math.abs(tY)!=Main.dY;tY++){
+                    for(tY=0;Math.abs(tY)!=(int)Main.dY;tY++){
                         aSprite(dir);
                         if(Main.gOver)
                             return ;
@@ -383,11 +381,11 @@ public class Ne implements Runnable {
             }
         }
         else {
-            v=vel/Main.dX;
+            v=(int)(vel/Main.dX);
             if(dir=='a'){
                 try{
                     while(Map.maze[pathy][pathx-1]!='1'){
-                        for(tX=0;Math.abs(tX)!=Main.dX;tX--){
+                        for(tX=0;Math.abs(tX)!=(int)Main.dX;tX--){
                             aSprite(dir);
                             if(Main.gOver)
                                 return ;
@@ -405,7 +403,7 @@ public class Ne implements Runnable {
                     if(pathx==0){
 
                     }
-                    for(tX=0;Math.abs(tX)!=Main.dX;tX--){
+                    for(tX=0;Math.abs(tX)!=(int)Main.dX;tX--){
                         aSprite(dir);
                         if(Main.gOver)
                             return ;
@@ -417,7 +415,7 @@ public class Ne implements Runnable {
             else{
                 try{
                     while(Map.maze[pathy][pathx+1]!='1'){
-                        for(tX=0;Math.abs(tX)!=Main.dX;tX++){
+                        for(tX=0;Math.abs(tX)!=(int)Main.dX;tX++){
                             aSprite(dir);
                             if(Main.gOver)
                                 return ;
@@ -428,7 +426,7 @@ public class Ne implements Runnable {
                         if(Map.maze[pathy][pathx]=='2'||Map.maze[pathy][pathx]=='3'||Map.maze[pathy][pathx]=='7')
                             break;
                     }}catch(Exception e){
-                    for(tX=0;Math.abs(tX)!=Main.dX;tX++){
+                    for(tX=0;Math.abs(tX)!=(int)Main.dX;tX++){
                         aSprite(dir);
                        if(Main.gOver)
                             return ;

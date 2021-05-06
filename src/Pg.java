@@ -1,3 +1,4 @@
+//IL PACMAN NON E BEN SINCRONIZZATO CON IL REPAINT, A CAUSA DI CIO L'ANIMAZIONE NON E BELLISSIMA
 import java.awt.image.BufferedImage;
 
 public class Pg implements Runnable{
@@ -20,14 +21,18 @@ public class Pg implements Runnable{
     }
 
     public void FirstLunch(int x,int y){
+        //Resetto la posizione
         pathx=x;
         pathy=y;
+        //Resetto ultimo nodo letto
         nodex=6;
         nodey=8;
+        //Resetto variabili d'animazione
+        tX=0;
+        tY=0;
 
 
         pac[0]=Main.img.getSubimage(36,1,13,13);
-        //Pac=pac[0];
         pac[1]=Main.img.getSubimage(20,1,13,13);
         pac[2]=Main.img.getSubimage(4,1,13,13);
         pac[3]=Main.img.getSubimage(20,17,13,13);
@@ -200,10 +205,10 @@ public class Pg implements Runnable{
 
     //Aumenta i pixel di un quadrato di array grafico(la grandezza di uno spostamento reale) per creare una transizione
     public void Trans(char dir){
-        int v=8;
+        int v=8; //8-default
         if(dir=='w'||dir=='s'){
             if(dir=='w'){
-                for(tY=0;Math.abs(tY)!=Main.dY;tY--){
+                for(tY=0;Math.abs(tY)!=(int)Main.dY;tY--){
                     aSprite(dir);
                     //Se ricevo un cambio direzione, me ne frego dell'animazione solo se posso farlo
                     //TO FIX
@@ -212,6 +217,10 @@ public class Pg implements Runnable{
                             while(tY!=0){
                                 aSprite('s');
                                 tY++;
+                                //Se muoio, termino l'animazione
+                                if(Main.gOver){
+                                    return ;
+                                }
                                 try{Thread.sleep(v);}catch(Exception e){}
                             }
                             return ;
@@ -225,7 +234,7 @@ public class Pg implements Runnable{
                 tY=0;
                 pathy--;}
             else{
-                for(tY=0;Math.abs(tY)!=Main.dY;tY++){
+                for(tY=0;Math.abs(tY)!=(int)Main.dY;tY++){
                     aSprite(dir);
                     //Se ricevo un cambio direzione, me ne frego dell'animazione solo se posso farlo
                     //TO FIX
@@ -234,6 +243,10 @@ public class Pg implements Runnable{
                             while(tY!=0){
                                 aSprite('w');
                                 tY--;
+                                //Se muoio, termino l'animazione
+                                if(Main.gOver){
+                                    return ;
+                                }
                                 try{Thread.sleep(v);}catch(Exception e){}
                             }
                             return ;
@@ -251,7 +264,7 @@ public class Pg implements Runnable{
 
         else {
             if(dir=='a'){
-                for(tX=0;Math.abs(tX)!=Main.dX;tX--){
+                for(tX=0;Math.abs(tX)!=(int)Main.dX;tX--){
                     aSprite(dir);
                     //Se ricevo un cambio direzione, me ne frego dell'animazione solo se posso farlo
                     //TO FIX
@@ -260,6 +273,10 @@ public class Pg implements Runnable{
                             while (tX != 0) {
                                 aSprite('d');
                                 tX++;
+                                //Se muoio, termino l'animazione
+                                if(Main.gOver){
+                                    return ;
+                                }
                                 try {
                                     Thread.sleep(v);
                                 } catch (Exception e) {
@@ -280,7 +297,7 @@ public class Pg implements Runnable{
                     pathx=27;
             }
             else{
-                for(tX=0;Math.abs(tX)!=Main.dX;tX++){
+                for(tX=0;Math.abs(tX)!=(int)Main.dX;tX++){
                     aSprite(dir);
                     //Se ricevo un cambio direzione, me ne frego dell'animazione solo se posso farlo
                     //TO FIX
@@ -291,6 +308,10 @@ public class Pg implements Runnable{
                         while(tX!=0){
                             aSprite('a');
                             tX--;
+                            //Se muoio, termino l'animazione
+                            if(Main.gOver){
+                                return ;
+                            }
                             try{Thread.sleep(v);}catch(Exception e){}
                         }
                             return;
