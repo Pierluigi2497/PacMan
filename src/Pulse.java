@@ -1,3 +1,4 @@
+import javax.swing.*;
 import java.time.Clock;
 
 public class Pulse implements Runnable{
@@ -6,7 +7,10 @@ public class Pulse implements Runnable{
     public Boolean c=true;
     public long eatableMillis;
     public long almostEatableMillis;
+    //Time of eateble as blue, the white is (timeofEateable+4000)
+    public int timeOfEateable=6000;
     public long pulseWhite;
+    private int i[]=new int[4];
     static int situation=0; //0-Nothing  1-Blue  2-Pulsing White-Blue
 
     public Pulse(){
@@ -21,6 +25,8 @@ public class Pulse implements Runnable{
             pacControl();
             dotPulse();
             sureEatable();
+            checkDots();
+            checkScore();
             try {
                 Thread.sleep(10);
             }catch (Exception e){
@@ -87,12 +93,12 @@ public class Pulse implements Runnable{
                 eatableMillis=clock.millis();
                 situation=1;
             }
-            if((clock.millis()-eatableMillis)<4000){
+            if((clock.millis()-eatableMillis)<timeOfEateable){
                 //Se non sono passati ancora 4 secondi, i fantasmi devono essere blu
                 //La classe Ne gestisce il colore
                 //Faccio gestire la morte del fantasma alla sua classe così da non appesantire Pulse
 
-            }else if((clock.millis()-eatableMillis)<6000){
+            }else if((clock.millis()-eatableMillis)<(timeOfEateable+4000)){
                 situation=2;
                 //Se non sono passati ancora 6 secondi ma ne sono passati solo 4, i fantasmi devono lampeggiare
             }else{
@@ -101,5 +107,59 @@ public class Pulse implements Runnable{
                 eatableMillis=0;
             }
         }
+    }
+
+    private void checkDots(){
+        /*if(Main.dots<200&&Main.ne[0].start&&Main.ne[0].ready){
+            //Ho vinto
+            Main.gOver=true;
+            //Resetto matrice
+            for(int i=0;i<Map.y;i++){
+                for(int j=0;j<Map.x;j++){
+                    Map.maze[i][j]=Map.originalMaze[i][j];
+                }
+            }
+            //Aumento Livello
+            Main.Level++;
+        }*/
+    }
+
+    public static void resetAll(){
+        //Resetto matrice
+        for(int i=0;i<Map.y;i++){
+            for(int j=0;j<Map.x;j++){
+                Map.maze[i][j]=Map.originalMaze[i][j];
+            }
+        }
+        //Resetto score
+        Main.score=0;
+        //Resetto vite
+        Main.Life=3;
+        //Resetto livelli
+        Main.Level=1;
+
+    }
+
+    public void checkScore(){
+        i[0]=Main.score%10;
+        i[1]=Main.score%100;
+        i[1]=i[1]/10;
+        i[2]=Main.score%1000;
+        i[2]=i[2]/100;
+        i[3]=Main.score/1000;
+
+        for(int l=0;l<4;l++)
+            switch(i[l]){
+                case 0:{Main.sf[l]=Main.s[0];}break;
+                case 1:{Main.sf[l]=Main.s[1];}break;
+                case 2:{Main.sf[l]=Main.s[2];}break;
+                case 3:{Main.sf[l]=Main.s[3];}break;
+                case 4:{Main.sf[l]=Main.s[4];}break;
+                case 5:{Main.sf[l]=Main.s[5];}break;
+                case 6:{Main.sf[l]=Main.s[6];}break;
+                case 7:{Main.sf[l]=Main.s[7];}break;
+                case 8:{Main.sf[l]=Main.s[8];}break;
+                case 9:{Main.sf[l]=Main.s[9];}break;
+            }
     }
 }

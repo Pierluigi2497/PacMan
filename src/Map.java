@@ -17,9 +17,13 @@ public class Map {
 
     //Leggo il file matrix.txt
     File f= new File("matrix.txt");
+    //Non deve essere mai modificato, serve per il reset
+    public static char originalMaze[][]= new char[y][x];
+    //Può essere modificata
     public static char maze[][]= new char[y][x];
     public Map(){
         CreateMaze(x,y);
+        makeOriginal(x,y);
         AddMoreNode(x,y);
         //Inserisco a mano un incrocio invisibile
         //che serve ad i fantasmini mangiati di tornare a casa
@@ -158,7 +162,7 @@ public class Map {
          return g;
      }
 
-    private void CreateMaze(int x,int y){
+    public void CreateMaze(int x,int y){
          File f =new File("matrix.txt");
          //Utilizzo 2 variabile per andatre avanti nel fgile della mappa così da escludere gli spazi
          int i=0;
@@ -273,4 +277,11 @@ public class Map {
 
      }
 
+    private void makeOriginal(int x,int y){
+        for(int i=0;i<y;i++){
+            for(int j=0;j<x;j++){
+                originalMaze[i][j]=maze[i][j];
+            }
+        }
+    }
 }

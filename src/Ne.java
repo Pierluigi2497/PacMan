@@ -16,6 +16,7 @@ public class Ne implements Runnable {
     private Boolean c=true;
     private Boolean d=true;
     public char ldir=' ';
+    public char dir=' ';
     private Clock clock=Clock.systemDefaultZone();
     //Serve per quando il fantasma deve flashare di bianco
     private long checkms=0;
@@ -130,7 +131,7 @@ public class Ne implements Runnable {
             }
             //L'oppure 4 è inserito solo per i nodi a 2 vie
             //Probabilmente mettendo un != 1 funzionerebbe meglio
-            if(Map.maze[pathy][pathx]=='2'||Map.maze[pathy][pathx]=='3'||Map.maze[pathy][pathx]=='4'||Map.maze[pathy][pathx]=='0'||Map.maze[pathy][pathx]=='7'){ //SE INCONTRA UNNODO
+            if(Map.maze[pathy][pathx]=='2'||Map.maze[pathy][pathx]=='3'||Map.maze[pathy][pathx]=='4'||Map.maze[pathy][pathx]=='0'||Map.maze[pathy][pathx]=='7'||Map.maze[pathy][pathx]=='5'){ //SE INCONTRA UNNODO
                 //Se non sono mangiabile e riesco a vedere Pacman OPPURE se non sono mangiato
                 if(eated){
                     if(goToHome()) {
@@ -184,12 +185,6 @@ public class Ne implements Runnable {
             //Quando Pg vuole, e tutti sono pronti, tutti i nemici si rigenerano
             if(!this.start){
                 try {
-                    //Nascosto bug diminuendo millis, potrebbe capitare che la variabile sync non faccia il suo dovere
-                    //a causa di una errata coordinazione
-                    //NON FUNZIONA UGUALE :(
-                    //TO FIX
-                    //Forse Fixato
-
                     Thread.sleep(20);
                 }catch (Exception e){}
             }
@@ -210,8 +205,7 @@ public class Ne implements Runnable {
     //X-pacman Y-pacman X-fantasma Y-fantasma Distanza_percorsa Distanza_da_pacman
     public char Follow(int x,int y) {
         GraphPath<String,DefaultEdge> graphPath;
-        try{graphPath = dijkstra.findPathBetween(Map.graph,(pathy+","+pathx),(y+","+x));}
-        catch (IllegalArgumentException e){return cieco();}
+        graphPath = dijkstra.findPathBetween(Map.graph,(pathy+","+pathx),(y+","+x));
 
         //prendo solo il secondo elemento della lista di archi ritornata
         //perchè il primo corrisponde a se stesso
@@ -281,55 +275,102 @@ public class Ne implements Runnable {
 
 
     public char cieco(){							//funzione che trova una direzione da prendere per il png in maniera casuale
-        int d;
-        d=(int)(Math.random()*10);
-        d++;					//d=decisione, numero casuale che determinerà la direzione del nemico in base a questi criteri:
-        //Il fantasma NON TORNA MAI INDIETRO
-        if((d%2)==0){								//se pari si muoverà su asse x
-            d=(int)(Math.random()*10);
-            d++;									//ricalcolo
-            if((d%2)==0){
-                try{
-                    //se di nuovo pari andrà a destra
-                    //se vengo da quella direzione, vado dall'altra parte
-                    if(ldir!='a'){
-                        if(Map.maze[pathy][pathx+1]!='1') {
-                            ldir='d';
-                            return 'd';
-                        }
-                    }
-                }catch(Exception e){ldir='d';return 'd';}
-            }
-                try {
-                    //se è dispari andrà a sinistra
-                    if (ldir != 'd') {
-                        if (Map.maze[pathy][pathx - 1] != '1')
-                            ldir='a';
-                            return 'a';
-                    }
-                }
-                catch(Exception e){ldir='a';return 'a';}
+        int l=0;
+        char w[]=new char[4];
+        //Azzero l'array w
+        for(int i=0;i<4;i++){
+            w[i]=' ';
         }
-        //se dispari si muoverà su asse y
-            d=(int)(Math.random()*10);
-            d++;									//ricalcolo
-            if((d%2)==0){
-                //se pari andrà in su
-                if(ldir!='s') {
-                    if (Map.maze[pathy - 1][pathx] != '1'){
-                        ldir='w';
-                        return 'w';
+        //Quante direzioni ho disponibili?
+        //Controllo tutte e 4 ed aggiorno il counter
+        if(Map.maze[pathy][pathx+1]!='1'){
+            if(ldir!='a') {
+                l++;
+                w[0]='d';
+            }
+        }
+        if(Map.maze[pathy+1][pathx]!='1'){
+            if(ldir!='w') {
+                l++;
+                w[1]='s';
+            }
+        }
+        if(Map.maze[pathy][pathx-1]!='1'){
+            if(ldir!='d') {
+                l++;
+                w[2]='a';
+            }
+        }
+        if(Map.maze[pathy-1][pathx]!='1'){
+            if(ldir!='s') {
+                l++;
+                w[3]='w';
+            }
+        }
+        //Ordino l'array cosicchè l'ultima posizione sia occupata da null
+        for(int i=0;i<3;i++) {
+            if(w[i]==' '){
+                for(int j=i+1;j<4;j++) {
+                    if(w[j]!=' ') {
+                     //Scambio di posto
+                        w[i] = w[j];
+                        w[j] = ' ';
+                        //esco dal secondo for
+                        break;
                     }
                 }
             }
-            //se dispari andra in giù
-            if(ldir!='w') {
-                if (Map.maze[pathy + 1][pathx] != '1'){
-                    ldir='s';
-                    return 's';
+        }
+        //Per prendere una direzione a caso, uso una variabile con Math.rand() e faccio il modulo di 3 o nell'altro caso di 2
+        //Il massimo delle direzioni che posso prendere è 3 perchè non posso andare indietro(caso peggiore), sono ad un incrocio 4 way
+        //Da eliminare |
+        //             V
+        if(l==4)
+            System.out.println("PROBLEMA NE RIGA 310");
+        if(l==3){//Se sono su un incrocio 4 way
+            //Scelgo una direzione a caso tra le 3
+            int d=(int)(Math.random()*10);
+            d=d%3;
+            switch (d){
+                case 0:{
+                    ldir=w[0];
+                    return w[0];
+                }
+                case 1:{
+                    ldir=w[1];
+                    return w[1];
+                }
+                case 2:{
+                    ldir=w[2];
+                    return w[2];
                 }
             }
-        return 'o';
+        }
+        //Se ho 2 direzioni, scelgo a caso tra queste due
+        if(l==2){//Scelgo una direzione tra le 2
+            //Scelgo una direzione a caso tra le 3
+            int d=(int)Math.random();
+            d=d%2;
+            switch (d){
+                case 0:{
+                    ldir=w[0];
+                    return w[0];
+                }
+                case 1:{
+                    ldir=w[1];
+                    return w[1];
+                }
+            }
+
+        }
+        //Se ho solo 1 direzioni disponibili, scelgo solo quella
+        if(l==1){//Vado nella direzione opposta a quella di partenza
+            ldir=w[0];
+            return w[0];
+        }
+        //NON CI SONO VICOLI CIECHI IN QUESTA MAPPA
+        //SE DEVONO ESSERE AGGIUNTI, QUI CI VA UN ALTRO IF
+        return 'e';
     }
 
     public boolean radar(){
@@ -352,7 +393,6 @@ public class Ne implements Runnable {
             if(dir=='w'){
                 while(Map.maze[pathy-1][pathx]!='1'){
                     for(tY=0;Math.abs(tY)!=(int)Main.dY;tY--){
-                        aSprite(dir);
                         if(Main.gOver)
                             return ;
 
@@ -360,21 +400,20 @@ public class Ne implements Runnable {
                     }
                     tY=0;
                     pathy--;
-                    if(Map.maze[pathy][pathx]=='2'||Map.maze[pathy][pathx]=='3')
+                    if(Map.maze[pathy][pathx]=='2'||Map.maze[pathy][pathx]=='3'||Map.maze[pathy][pathx]=='5')
                         break;}
 
             }
             else{
                 while(Map.maze[pathy+1][pathx]!='1'){
                     for(tY=0;Math.abs(tY)!=(int)Main.dY;tY++){
-                        aSprite(dir);
                         if(Main.gOver)
                             return ;
                         try{Thread.sleep(v);}catch(Exception e){}
                     }
                     tY=0;
                     pathy++;
-                    if(Map.maze[pathy][pathx]=='2'||Map.maze[pathy][pathx]=='3')
+                    if(Map.maze[pathy][pathx]=='2'||Map.maze[pathy][pathx]=='3'||Map.maze[pathy][pathx]=='5')
                         break;
                 }
 
@@ -386,7 +425,6 @@ public class Ne implements Runnable {
                 try{
                     while(Map.maze[pathy][pathx-1]!='1'){
                         for(tX=0;Math.abs(tX)!=(int)Main.dX;tX--){
-                            aSprite(dir);
                             if(Main.gOver)
                                 return ;
                             try{Thread.sleep(v);}catch(Exception e){}
@@ -395,7 +433,7 @@ public class Ne implements Runnable {
                         pathx--;
                         //Se incontro un incrocio, esco dalla transizione e vedo quale direzione prendere
                         //Esco pure se incontro un 7(Punto di rigenerazione) perchè il fantasmino deve uscire da casa
-                        if(Map.maze[pathy][pathx]=='2'||Map.maze[pathy][pathx]=='3'||Map.maze[pathy][pathx]=='7')
+                        if(Map.maze[pathy][pathx]=='2'||Map.maze[pathy][pathx]=='3'||Map.maze[pathy][pathx]=='7'||Map.maze[pathy][pathx]=='5')
                             break;
                     }
                 }catch(Exception e){
@@ -404,7 +442,7 @@ public class Ne implements Runnable {
 
                     }
                     for(tX=0;Math.abs(tX)!=(int)Main.dX;tX--){
-                        aSprite(dir);
+                        //aSprite(dir);
                         if(Main.gOver)
                             return ;
                         try{Thread.sleep(v);}catch(Exception a){}
@@ -416,18 +454,17 @@ public class Ne implements Runnable {
                 try{
                     while(Map.maze[pathy][pathx+1]!='1'){
                         for(tX=0;Math.abs(tX)!=(int)Main.dX;tX++){
-                            aSprite(dir);
                             if(Main.gOver)
                                 return ;
                             try{Thread.sleep(v);}catch(Exception e){}
                         }
                         tX=0;
                         pathx++;
-                        if(Map.maze[pathy][pathx]=='2'||Map.maze[pathy][pathx]=='3'||Map.maze[pathy][pathx]=='7')
+                        if(Map.maze[pathy][pathx]=='2'||Map.maze[pathy][pathx]=='3'||Map.maze[pathy][pathx]=='7'||Map.maze[pathy][pathx]=='5')
                             break;
                     }}catch(Exception e){
                     for(tX=0;Math.abs(tX)!=(int)Main.dX;tX++){
-                        aSprite(dir);
+                       // aSprite(dir);
                        if(Main.gOver)
                             return ;
                         try{Thread.sleep(v);}catch(Exception a){}
@@ -439,65 +476,11 @@ public class Ne implements Runnable {
         }
     }
 
-    public void aSprite(char dir){
-        if(eated){
-            eatedSprite(dir);
-            return;
-        }
-        if(Pulse.situation==0){
-            switch(dir){
-                case 'w':{if(c){
-                    n=i[4];
-                    c=!c;
-                }else{
-                    n=i[5];
-                    c=!c;
-                }}break;
-                case 'a':{if(c){
-                    n=i[2];
-                    c=!c;
-                }else{
-                    n=i[3];
-                    c=!c;
-                }}break;
-                case 'd':{if(c){
-                    n=i[0];
-                    c=!c;
-                }else{
-                    n=i[1];
-                    c=!c;
-                }}break;
-                case 's':{if(c){
-                    n=i[6];
-                    c=!c;
-                }else{
-                    n=i[7];
-                    c=!c;
-                }}break;
-
-            }
-        }
-        else{
-            if(Pulse.situation==1){
-                blueSprite();
-            }
-            else if(Pulse.situation==2){
-                //Se situation==2
-                //Lo si da per scontato quindi
-                //Evito di fare un if
-                whiteSprite();
-            }
-        }
-
-
-    }
-
-
     public void corri(char direzione){
 
         //Valori Direzione:
         //w=su  d=destra  s=giù  a=sinistra
-
+        dir=direzione;
         switch(direzione){
             case 'w':{Trans('w');}break;
 
@@ -509,64 +492,6 @@ public class Ne implements Runnable {
 
             case 'a':{
                 Trans('a');}break;
-        }
-    }
-
-    public void blueSprite(){
-        if(c){
-            n=i[8];
-            c=!c;
-        }else{
-            n=i[9];
-            c=!c;
-        }
-    }
-
-    public void whiteSprite(){
-        //Ogni 500 ms cambio colore, da bianco a blu
-        //E' la prima volta che entro?
-        if(checkms==0){
-            checkms= clock.millis();
-            c=true;
-
-        }else{
-            if((clock.millis()-checkms)<200){
-                //se devo cambiare colore, se d==true,faccio l'animazione del bianco altrimenti
-                // divento blue
-                if(d) {
-                    if (c) {
-                        n = i[10];
-                        c = !c;
-                    } else {
-                        n = i[11];
-                        c = !c;
-                    }
-                }else{
-                    if (c) {
-                        n = i[8];
-                        c = !c;
-                    } else {
-                        n = i[9];
-                        c = !c;
-                    }
-                }
-            }else{
-                //Quando finisco l'animazione di un colore, resetto checkms
-                //e cambio la variabile per il colore
-                checkms=clock.millis();
-                d=!d;
-            }
-
-
-        }
-    }
-
-    public void eatedSprite(char dir){
-        switch (dir){
-            case 'w':{n=dead[2];}break;
-            case 'a':{n=dead[1];}break;
-            case 's':{n=dead[3];}break;
-            case 'd':{n=dead[0];}break;
         }
     }
 

@@ -24,10 +24,17 @@ public class Main{
     static int trueHeight;
     static int trueWidth;
     static int startx,starty;
+    static int Life=3;
+    static int Level=1;
+    static BufferedImage LifeImage;
     static Pulse pulse;
     static Thread pul;
+    //Immagini di numeri
     static BufferedImage[] s=new BufferedImage[11];
+    //Immagini di numeri per lo score
     static BufferedImage[] sf=new BufferedImage[4];
+    //Immagini di numeri per i livelli
+    static BufferedImage[] le=new BufferedImage[4];
     static int score;
     static Boolean stop=false;
     static int Ngiocatori=4;
@@ -42,7 +49,8 @@ public class Main{
 
         try{img=ImageIO.read(new File("res/sheet.png"));
             map=ImageIO.read(new File("res/map.png"));
-            Scritte=ImageIO.read(new File("res/scritte.png"));}
+            Scritte=ImageIO.read(new File("res/scritte.png"));
+            }
         catch(Exception e){e.printStackTrace();System.out.println(System.getProperty("user.dir"));System.exit(-1);}
         s[0]=Scritte.getSubimage(0,0,11,10);
         s[1]=Scritte.getSubimage(13,0,9,10);
@@ -57,7 +65,10 @@ public class Main{
         s[9]=Scritte.getSubimage(108,0,11,10);
         s[10]=Scritte.getSubimage(127,0,168,17);
 
+        LifeImage=img.getSubimage(20,1,13,13);
+
         pg=new Pg(6,9);
+
         ne[0]=new Ne(12,14,"red");
         ne[1]=new Ne(13,14,"pink");
         ne[2]=new Ne(14,14,"blue");
@@ -110,10 +121,9 @@ public class Main{
             }
         });
         p.start();
-        n[0].start();
-        n[1].start();
-        n[2].start();
-        n[3].start();
+        for(int i=0;i<Ngiocatori;i++){
+            n[i].start();
+        }
         pul.start();
 
     }
