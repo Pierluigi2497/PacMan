@@ -1,4 +1,3 @@
-import javax.swing.*;
 import java.time.Clock;
 
 public class Pulse implements Runnable{
@@ -15,6 +14,7 @@ public class Pulse implements Runnable{
     static int situation=0; //0-Nothing  1-Blue  2-Pulsing White-Blue
 
     public Pulse(){
+
     }
 
     public void run(){
@@ -30,7 +30,7 @@ public class Pulse implements Runnable{
             checkScore();
             checkDots();
             try {
-                Thread.sleep(10);
+                Thread.sleep(1);
             }catch (Exception e){
 
             }
@@ -55,8 +55,8 @@ public class Pulse implements Runnable{
         }
         else if(Map.maze[Main.pg.pathy][Main.pg.pathx]=='4'){
             Map.maze[Main.pg.pathy][Main.pg.pathx]='0';Main.score=Main.score+10;Main.dots--;}
-        else if(Map.maze[Main.pg.pathy][Main.pg.pathx]=='2'){Map.maze[Main.pg.pathy][Main.pg.pathx]='3';Main.score=Main.score+10;Main.dots--;}
-        //Controllo Morte
+        else if(Map.maze[Main.pg.pathy][Main.pg.pathx]=='2'){Map.maze[Main.pg.pathy][Main.pg.pathx]='3';Main.score=Main.score+10;Main.dots--; }
+                //Controllo Morte
         for(int i=0;i<4;i++){
             if(Main.ne[i].pathy==Main.pg.pathy&&Main.ne[i].pathx==Main.pg.pathx&&!Main.ne[i].eated){
                 if(Main.Eat==1)
@@ -67,8 +67,9 @@ public class Pulse implements Runnable{
                     Main.ne[i].vel=135;
                     Main.score+=100;
                 }
-                else
-                    Main.gOver=true;
+                else {
+                    Main.gOver = true;
+                }
             }}
     }
 
@@ -185,4 +186,5 @@ public class Pulse implements Runnable{
             countDots();
         }
     }
+
 }

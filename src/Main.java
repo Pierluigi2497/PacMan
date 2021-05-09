@@ -7,6 +7,8 @@ import java.io.File;
 
 public class Main{
     static Frame f=new Frame();
+    static Audio audio=new Audio();
+    static Thread audioThread=new Thread(audio);
     static Ne[] ne=new Ne[4];
     static BufferedImage img;
     static Pg pg;
@@ -71,7 +73,7 @@ public class Main{
 
         LifeImage=img.getSubimage(20,1,13,13);
 
-        pg=new Pg(6,9);
+        pg=new Pg(6,10);
 
         ne[0]=new Ne(12,14,"red");
         ne[1]=new Ne(13,14,"pink");
@@ -129,6 +131,7 @@ public class Main{
             n[i].start();
         }
         pul.start();
+        audioThread.start();
 
     }
 

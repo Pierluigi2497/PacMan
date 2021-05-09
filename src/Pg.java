@@ -157,16 +157,25 @@ public class Pg implements Runnable{
             Restart=false;
             Main.gOver=false;
             Pac=pac[0];
-            if(Main.cdir==' '){
-                Main.startGame=true;
-            }
-            if(Main.startGame) {
-                Life();
+            if(!Audio.beginningClip.isActive()) {
+                if (Main.cdir == ' ') {
+                    Main.startGame = true;
+                }
+                if (Main.startGame) {
+                    Audio.stopDots = false;
+                    Life();
+                } else {
+                    //Tutti i fantasmi sono pronti, li libero dal loop
+                    for (int i = 0; i < Main.Ngiocatori; i++) {
+                        Main.ne[i].start = true;
+                        Main.ne[i].ready = true;
+                    }
+                }
             }else{
                 //Tutti i fantasmi sono pronti, li libero dal loop
-                for(int i=0;i<Main.Ngiocatori;i++){
-                    Main.ne[i].start=true;
-                    Main.ne[i].ready=true;
+                for (int i = 0; i < Main.Ngiocatori; i++) {
+                    Main.ne[i].start = true;
+                    Main.ne[i].ready = true;
                 }
             }
             //Quando il pg muore o la partita si resetta, chiamo una funzione per resettare i valori e l'altra per dare
