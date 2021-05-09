@@ -11,6 +11,7 @@ public class Pulse implements Runnable{
     public int timeOfEateable=6000;
     public long pulseWhite;
     private int i[]=new int[4];
+    public static boolean win=false;
     static int situation=0; //0-Nothing  1-Blue  2-Pulsing White-Blue
 
     public Pulse(){
@@ -21,12 +22,13 @@ public class Pulse implements Runnable{
         almostEatableMillis=0;
         pulseWhite=0;
         eatableMillis=0;
+        countDots();
         for(;;){
             pacControl();
             dotPulse();
             sureEatable();
-            checkDots();
             checkScore();
+            checkDots();
             try {
                 Thread.sleep(10);
             }catch (Exception e){
@@ -43,7 +45,7 @@ public class Pulse implements Runnable{
     public void pacControl(){
         //Se mangia la palla grossa lui può mangiare i fantasmi e la palla diventa uno spazio vuoto 0
         if(Map.maze[Main.pg.pathy][Main.pg.pathx]=='5'){
-            Main.Eat=1;Map.maze[Main.pg.pathy][Main.pg.pathx]='0';Main.score=Main.score+50;
+            Main.Eat=1;Map.maze[Main.pg.pathy][Main.pg.pathx]='0';Main.score=Main.score+50;Main.dots--;
             //Quando mangio la palla grossa, resetto ldir così i fantasmi si possono girare indietro
             //Imposto una velocità più alta(più alto il valore, più lenti sono i fantasmi)
             for(int i=0;i<Main.Ngiocatori;i++){
@@ -52,8 +54,8 @@ public class Pulse implements Runnable{
             }
         }
         else if(Map.maze[Main.pg.pathy][Main.pg.pathx]=='4'){
-            Map.maze[Main.pg.pathy][Main.pg.pathx]='0';Main.score=Main.score+10;}
-        else if(Map.maze[Main.pg.pathy][Main.pg.pathx]=='2'){Map.maze[Main.pg.pathy][Main.pg.pathx]='3';Main.score=Main.score+10;}
+            Map.maze[Main.pg.pathy][Main.pg.pathx]='0';Main.score=Main.score+10;Main.dots--;}
+        else if(Map.maze[Main.pg.pathy][Main.pg.pathx]=='2'){Map.maze[Main.pg.pathy][Main.pg.pathx]='3';Main.score=Main.score+10;Main.dots--;}
         //Controllo Morte
         for(int i=0;i<4;i++){
             if(Main.ne[i].pathy==Main.pg.pathy&&Main.ne[i].pathx==Main.pg.pathx&&!Main.ne[i].eated){
@@ -105,23 +107,12 @@ public class Pulse implements Runnable{
                 situation=0;
                 Main.Eat=0;
                 eatableMillis=0;
-            }
-        }
-    }
-
-    private void checkDots(){
-        /*if(Main.dots<200&&Main.ne[0].start&&Main.ne[0].ready){
-            //Ho vinto
-            Main.gOver=true;
-            //Resetto matrice
-            for(int i=0;i<Map.y;i++){
-                for(int j=0;j<Map.x;j++){
-                    Map.maze[i][j]=Map.originalMaze[i][j];
+                //Reimposto tutte le velocità dei fantasmini a quella originale
+                for(int i=0;i<Main.Ngiocatori;i++){
+                    Main.ne[i].vel=250;
                 }
             }
-            //Aumento Livello
-            Main.Level++;
-        }*/
+        }
     }
 
     public static void resetAll(){
@@ -137,6 +128,8 @@ public class Pulse implements Runnable{
         Main.Life=3;
         //Resetto livelli
         Main.Level=1;
+
+        Main.startGame=false;
 
     }
 
@@ -161,5 +154,35 @@ public class Pulse implements Runnable{
                 case 8:{Main.sf[l]=Main.s[8];}break;
                 case 9:{Main.sf[l]=Main.s[9];}break;
             }
+    }
+
+    private void countDots(){
+        //Conto quante palline ci stanno
+        Main.dots=0;
+        for(int i = 0;i<Map.y;i++){
+            for(int j=0;j<Map.x;j++){
+                if(Map.maze[i][j]=='2'||Map.maze[i][j]=='4'||Map.maze[i][j]=='5'){
+                    Main.dots++;
+                }
+            }
+        }
+    }
+
+    private void checkDots(){
+
+        if(Main.dots==0){
+            //Ho vinto
+            win=true;
+            Main.gOver=true;
+            //Resetto matrice
+            for(int i=0;i<Map.y;i++){
+                for(int j=0;j<Map.x;j++){
+                    Map.maze[i][j]=Map.originalMaze[i][j];
+                }
+            }
+            //Aumento Livello
+            Main.Level++;
+            countDots();
+        }
     }
 }

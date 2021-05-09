@@ -27,6 +27,7 @@ public class Main{
     static int Life=3;
     static int Level=1;
     static BufferedImage LifeImage;
+    static BufferedImage readyImg;
     static Pulse pulse;
     static Thread pul;
     //Immagini di numeri
@@ -39,6 +40,7 @@ public class Main{
     static Boolean stop=false;
     static int Ngiocatori=4;
     static int range=25;
+    static boolean startGame=false;
 
     //Variabile statica per sincronizzare i nemici ed il Pacman
 
@@ -64,6 +66,8 @@ public class Main{
         s[8]=Scritte.getSubimage(96,0,11,10);
         s[9]=Scritte.getSubimage(108,0,11,10);
         s[10]=Scritte.getSubimage(127,0,168,17);
+
+        readyImg=Main.Scritte.getSubimage(0,11,100,18);
 
         LifeImage=img.getSubimage(20,1,13,13);
 

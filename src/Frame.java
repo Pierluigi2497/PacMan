@@ -37,7 +37,6 @@ public class Frame extends JPanel implements Runnable {
     }
 
     public void run(){
-        System.out.println(font.getName());
         dot=Main.img.getSubimage(137,33,12,12);
         Dot=Main.img.getSubimage(152,31,16,16);
         f.setTitle("Pacman");
@@ -47,7 +46,6 @@ public class Frame extends JPanel implements Runnable {
         timeForPacman=clock.millis();
         timeForWhiteGhosts=clock.millis();
         for(;;){
-            Main.dots=0;
             repaint();
             try{
                 //33=30 FPS
@@ -68,11 +66,12 @@ public class Frame extends JPanel implements Runnable {
         drawDots(g);
         drawGhosts(g);
         drawPacman(g);
+        drawBlack(g);
         drawScore(g);
         drawGameOver(g);
         drawLife(g);
         drawLevel(g);
-        System.out.println(Main.dots);
+        drawReady(g);
     }
 
     public void drawMap(Graphics g){
@@ -86,13 +85,12 @@ public class Frame extends JPanel implements Runnable {
         for(int i=0;i<Map.y;i++)
             for(int l=0;l<Map.x;l++)
                 if(Map.maze[i][l]=='2'||Map.maze[i][l]=='4') {
-                    Main.dots++;
+
                     g.drawOval(Main.startx+(int)(Main.dX*l)+(Main.dX/2)-2,Main.starty+(int)(Main.dY*i)+(Main.dY/2)-2,4,4);
                     g.fillOval(Main.startx+(int)(Main.dX*l)+(Main.dX/2)-2,Main.starty+(int)(Main.dY*i)+(Main.dY/2)-2,4,4);
                     // g.drawImage(dot,Main.startx+(Main.dX*l),Main.dY*i,Main.dX,Main.dY,null);
                 }
                 else if(Map.maze[i][l]=='5'){
-                    Main.dots++;
                     if((clock.millis()-timeForDots)<speedDots) {
                         //Finchè non passa un secondo, stampo
                         g.drawOval(Main.startx + (int) (Main.dX * l) + (Main.dX / 2) - 5, Main.starty + (int) Main.dY * i + (Main.dY / 2) - 5, 10, 10);
@@ -356,6 +354,22 @@ public class Frame extends JPanel implements Runnable {
             g.drawImage(Main.le[l],(int)(Main.startx+(j*11)+(Main.trueWidth*0.91)),(int)(Main.trueHeight*0.38),11,10,null);
         }
 
+    }
+
+    public void drawBlack(Graphics g){
+        //Stampo delle bande nere vicino al tunnel, per non far vedere i fantasmini o il pacman quando lo attraversano
+        g.setColor(Color.BLACK);
+        g.drawRect((Main.startx-Main.dX),(int)(Main.starty+(Main.trueHeight*0.435)),Main.dX,Main.dY*2);
+        g.fillRect((Main.startx-Main.dX),(int)(Main.starty+(Main.trueHeight*0.435)),Main.dX,Main.dY*2);
+        g.drawRect((Main.startx+Main.trueWidth),(int)(Main.starty+(Main.trueHeight*0.435)),Main.dX,Main.dY*2);
+        g.fillRect((Main.startx+Main.trueWidth),(int)(Main.starty+(Main.trueHeight*0.435)),Main.dX,Main.dY*2);
+
+    }
+
+    public void drawReady(Graphics g){
+        if(!Main.startGame){
+            g.drawImage(Main.readyImg,(int)(Main.startx+(Main.trueWidth*0.43)),(int)(Main.trueHeight*0.57),100,18,null);
+        }
     }
 
 }

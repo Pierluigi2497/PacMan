@@ -157,7 +157,18 @@ public class Pg implements Runnable{
             Restart=false;
             Main.gOver=false;
             Pac=pac[0];
-            Life();
+            if(Main.cdir==' '){
+                Main.startGame=true;
+            }
+            if(Main.startGame) {
+                Life();
+            }else{
+                //Tutti i fantasmi sono pronti, li libero dal loop
+                for(int i=0;i<Main.Ngiocatori;i++){
+                    Main.ne[i].start=true;
+                    Main.ne[i].ready=true;
+                }
+            }
             //Quando il pg muore o la partita si resetta, chiamo una funzione per resettare i valori e l'altra per dare
             //vita al PG
         }
@@ -174,7 +185,11 @@ public class Pg implements Runnable{
                 if(Main.Life==0){
                     Pulse.resetAll();
                 }else {
-                    Main.Life--;
+                    //Se il gameover è causato da una vittoria, non diminuisco le vite
+                    if(!Pulse.win) {
+                        Main.Life--;
+                    }
+                    Pulse.win=false;
                 }
                 break;
             }
@@ -231,6 +246,7 @@ public class Pg implements Runnable{
                     //Se ricevo un cambio direzione, me ne frego dell'animazione solo se posso farlo
                     if(Main.cdir!=dir){
                         if(ControlloDir(Main.cdir)){
+                            Direction=Main.cdir;
                             while(tY!=0){
                                 tY++;
                                 //Se muoio, termino l'animazione
@@ -254,6 +270,7 @@ public class Pg implements Runnable{
                     //Se ricevo un cambio direzione, me ne frego dell'animazione solo se posso farlo
                     if(Main.cdir!=dir){
                         if(ControlloDir(Main.cdir)){
+                            Direction=Main.cdir;
                             while(tY!=0){
                                 //aSprite('w');
                                 tY--;
@@ -282,6 +299,7 @@ public class Pg implements Runnable{
                     //Se ricevo un cambio direzione, me ne frego dell'animazione solo se posso farlo
                     if(Main.cdir!=dir) {
                         if (ControlloDir(Main.cdir)) {
+                            Direction=Main.cdir;
                             while (tX != 0) {
                                 tX++;
                                 //Se muoio, termino l'animazione
@@ -314,6 +332,7 @@ public class Pg implements Runnable{
                         if(ControlloDir(Main.cdir))
                             //Se cambio direzione faccio un'animazione inversa per poi fare l'animazione giusta
                         {
+                            Direction=Main.cdir;
                         while(tX!=0){
                             tX--;
                             //Se muoio, termino l'animazione
@@ -350,6 +369,9 @@ public class Pg implements Runnable{
                 }
             }break;
             case 'a': {
+                //Sono al tunnel? per evitare guai ritorno true
+                if(pathx==0)
+                    return true;
                 if(Map.maze[pathy][pathx-1]!='1'&&!Main.gOver){
                     return true;
                 }
@@ -360,6 +382,9 @@ public class Pg implements Runnable{
                 }
             }break;
             case 'd': {
+                //Sono al tunnel? per evitare guai ritorno true
+                if(pathx==27)
+                    return true;
                 if (Map.maze[pathy][pathx + 1] != '1' && !Main.gOver) {
                     return true;
                 }

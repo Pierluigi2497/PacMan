@@ -196,7 +196,9 @@ public class Ne implements Runnable {
             }catch (Exception e){
 
             }
-            Life();
+            if(Main.startGame) {
+                Life();
+            }
           }
         }
     }
@@ -204,8 +206,9 @@ public class Ne implements Runnable {
 
     //X-pacman Y-pacman X-fantasma Y-fantasma Distanza_percorsa Distanza_da_pacman
     public char Follow(int x,int y) {
-        GraphPath<String,DefaultEdge> graphPath;
-        graphPath = dijkstra.findPathBetween(Map.graph,(pathy+","+pathx),(y+","+x));
+        GraphPath<String,DefaultEdge> graphPath=null;
+        try{graphPath = dijkstra.findPathBetween(Map.graph,(pathy+","+pathx),(y+","+x));}
+        catch (IllegalArgumentException e){ldir=cieco();return ldir;}
 
         //prendo solo il secondo elemento della lista di archi ritornata
         //perchè il primo corrisponde a se stesso
