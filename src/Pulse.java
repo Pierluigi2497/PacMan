@@ -55,7 +55,8 @@ public class Pulse implements Runnable{
         }
         else if(Map.maze[Main.pg.pathy][Main.pg.pathx]=='4'){
             Map.maze[Main.pg.pathy][Main.pg.pathx]='0';Main.score=Main.score+10;Main.dots--;}
-        else if(Map.maze[Main.pg.pathy][Main.pg.pathx]=='2'){Map.maze[Main.pg.pathy][Main.pg.pathx]='3';Main.score=Main.score+10;Main.dots--; }
+        else if(Map.maze[Main.pg.pathy][Main.pg.pathx]=='2'){Map.maze[Main.pg.pathy][Main.pg.pathx]='3';Main.score=Main.score+10;Main.dots--;}
+        else
                 //Controllo Morte
         for(int i=0;i<4;i++){
             if(Main.ne[i].pathy==Main.pg.pathy&&Main.ne[i].pathx==Main.pg.pathx&&!Main.ne[i].eated){
@@ -66,6 +67,7 @@ public class Pulse implements Runnable{
                     Main.ne[i].eated=true;
                     Main.ne[i].vel=135;
                     Main.score+=100;
+                    Audio.eatedGhost=true;
                 }
                 else {
                     Main.gOver = true;
@@ -167,6 +169,7 @@ public class Pulse implements Runnable{
                 }
             }
         }
+        Audio.dots=Main.dots;
     }
 
     private void checkDots(){

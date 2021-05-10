@@ -8,6 +8,7 @@ public class Audio implements Runnable{
     static boolean stopDots=true;
 
     private Clock clock=Clock.systemDefaultZone();
+    static boolean eatedGhost=false;
     private double timerBeginning=0;//File lenght=4126 ms
     File beginningFile= new File("res/beginning.wav");
     AudioInputStream beginning;
@@ -27,7 +28,7 @@ public class Audio implements Runnable{
 
     //variabile tmp
     private double tmp=0;
-    private double dots=Main.dots;
+    static int dots=Main.dots;
 
     AudioFormat format;
     DataLine.Info info;
@@ -35,18 +36,11 @@ public class Audio implements Runnable{
     public void run(){
         //Ho mangiato una qualunque pallina, avvio il suono
         while(true) {
-            //Se devo fermare prima il suono del chomp
-/*            if((Map.maze[Main.pg.pathy][Main.pg.pathx]!='2'&&Map.maze[Main.pg.pathy][Main.pg.pathx]!='4'&&Map.maze[Main.pg.pathy][Main.pg.pathx]!='5')){
-                chompClip.stop();
-                chompClip.setMicrosecondPosition(0);
-                timerChomp=0;
-                tmp= clock.millis();
-            }*/
             if(!Main.startGame){
                 timerBeginning= clock.millis();
                 beginningClip.start();
             }
-            if ((Main.dots!=dots) && timerChomp == 0 && !stopDots) {
+            if ((dots-Main.dots>1) && timerChomp == 0 && !stopDots) {
                 dots=Main.dots;
                 timerChomp = clock.millis();
                 chompClip.start();
@@ -55,6 +49,11 @@ public class Audio implements Runnable{
             if (Main.gOver) {
                 timerDeath = clock.millis();
                 deathClip.start();
+            }
+            if(eatedGhost){
+                timerEat= clock.millis();
+                ghostClip.start();
+                eatedGhost=false;
             }
             checkAudio();
             try {
@@ -121,22 +120,18 @@ public class Audio implements Runnable{
         if(timerBeginning!=0){
             if(clock.millis()-timerBeginning>4126){
                 beginningClip.stop();
+                beginningClip.setMicrosecondPosition(0);
                 timerBeginning=0;
             }
         }
         if(timerEat!=0){
             if(clock.millis()-timerEat>573){
                 ghostClip.stop();
+                ghostClip.setMicrosecondPosition(0);
                 timerEat=0;
             }
         }
     }
 
-    public void playGhost(){
-        for(int i=0;i<4;i++){
-            //Controllo se qualche fantasmino è stato mangiato, in tal caso metto il suono corrispondente
-
-        }
-    }
 
 }

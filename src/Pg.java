@@ -157,6 +157,7 @@ public class Pg implements Runnable{
             Restart=false;
             Main.gOver=false;
             Pac=pac[0];
+            //Aspetto che l'audio beginning finisca prima di iniziare il gioco
             if(!Audio.beginningClip.isActive()) {
                 if (Main.cdir == ' ') {
                     Main.startGame = true;
