@@ -25,6 +25,9 @@ public class Audio implements Runnable{
     File deathFile= new File("res/death.wav");
     AudioInputStream death;
     Clip deathClip;
+    File sirenFile= new File("res/siren.wav");
+    AudioInputStream siren;
+    Clip sirenClip;
 
     //variabile tmp
     private double tmp=0;
@@ -40,6 +43,9 @@ public class Audio implements Runnable{
                 timerBeginning= clock.millis();
                 beginningClip.start();
             }
+            /*if(!beginningClip.isActive()&&!deathClip.isActive()){
+                sirenClip.loop(Clip.LOOP_CONTINUOUSLY);
+            }*/
             if ((dots-Main.dots>1) && timerChomp == 0 && !stopDots) {
                 dots=Main.dots;
                 timerChomp = clock.millis();
@@ -98,6 +104,15 @@ public class Audio implements Runnable{
         try {
             deathClip = (Clip) AudioSystem.getLine(info);
             deathClip.open(death);
+        }catch (Exception e){System.out.println("Errore riproduzione");}
+
+        try{siren= AudioSystem.getAudioInputStream(sirenFile);}
+        catch(Exception e){e.printStackTrace();System.out.println("Errore apertura audio");}
+        format = siren.getFormat();
+        info = new DataLine.Info(Clip.class, format);
+        try {
+            sirenClip = (Clip) AudioSystem.getLine(info);
+            sirenClip.open(siren);
         }catch (Exception e){System.out.println("Errore riproduzione");}
     }
 
