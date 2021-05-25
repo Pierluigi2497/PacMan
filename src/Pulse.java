@@ -44,35 +44,35 @@ public class Pulse implements Runnable{
 
     public void pacControl(){
         //Se mangia la palla grossa lui può mangiare i fantasmi e la palla diventa uno spazio vuoto 0
-        if(Map.maze[Main.pg.pathy][Main.pg.pathx]=='5'){
-            Main.Eat=1;Map.maze[Main.pg.pathy][Main.pg.pathx]='0';Main.score=Main.score+50;Main.dots--;
+        if(Map.maze[Main.pg.controller.pathy][Main.pg.controller.pathx]=='5'){
+            Main.Eat=1;Map.maze[Main.pg.controller.pathy][Main.pg.controller.pathx]='0';Main.score=Main.score+50;Main.dots--;
             //Quando mangio la palla grossa, resetto ldir così i fantasmi si possono girare indietro
             //Imposto una velocità più alta(più alto il valore, più lenti sono i fantasmi)
             for(int i=0;i<Main.Ngiocatori;i++){
                 Main.ne[i].ldir=' ';
-                Main.ne[i].vel=350;
+                Main.ne[i].controller.vel=350;
             }
         }
-        else if(Map.maze[Main.pg.pathy][Main.pg.pathx]=='4'){
-            Map.maze[Main.pg.pathy][Main.pg.pathx]='0';Main.score=Main.score+10;Main.dots--;}
-        else if(Map.maze[Main.pg.pathy][Main.pg.pathx]=='2'){Map.maze[Main.pg.pathy][Main.pg.pathx]='3';Main.score=Main.score+10;Main.dots--;}
+        else if(Map.maze[Main.pg.controller.pathy][Main.pg.controller.pathx]=='4'){
+            Map.maze[Main.pg.controller.pathy][Main.pg.controller.pathx]='0';Main.score=Main.score+10;Main.dots--;}
+        else if(Map.maze[Main.pg.controller.pathy][Main.pg.controller.pathx]=='2'){Map.maze[Main.pg.controller.pathy][Main.pg.controller.pathx]='3';Main.score=Main.score+10;Main.dots--;}
         else
-                //Controllo Morte
-        for(int i=0;i<4;i++){
-            if(Main.ne[i].pathy==Main.pg.pathy&&Main.ne[i].pathx==Main.pg.pathx&&!Main.ne[i].eated){
-                if(Main.Eat==1)
-                {
-                    //Setto una variabile che possono vedere tutti i nemici
-                    //in questo modo possono tornare a casa mangiati e uscirne interi
-                    Main.ne[i].eated=true;
-                    Main.ne[i].vel=135;
-                    Main.score+=100;
-                    Audio.eatedGhost=true;
-                }
-                else {
-                    Main.gOver = true;
-                }
-            }}
+            //Controllo Morte
+            for(int i=0;i<4;i++){
+                if(Main.ne[i].controller.pathy==Main.pg.controller.pathy&&Main.ne[i].controller.pathx==Main.pg.controller.pathx&&!Main.ne[i].eated){
+                    if(Main.Eat==1)
+                    {
+                        //Setto una variabile che possono vedere tutti i nemici
+                        //in questo modo possono tornare a casa mangiati e uscirne interi
+                        Main.ne[i].eated=true;
+                        Main.ne[i].controller.vel=135;
+                        Main.score+=100;
+                        Audio.eatedGhost=true;
+                    }
+                    else {
+                        Main.gOver = true;
+                    }
+                }}
     }
 
 
@@ -112,7 +112,10 @@ public class Pulse implements Runnable{
                 eatableMillis=0;
                 //Reimposto tutte le velocità dei fantasmini a quella originale
                 for(int i=0;i<Main.Ngiocatori;i++){
-                    Main.ne[i].vel=250;
+                    //Se il tempo è scaduto e non sono stato mangiato, reimposto la velocità
+                    if(!Main.ne[i].eated) {
+                        Main.ne[i].controller.vel = 250;
+                    }
                 }
             }
         }

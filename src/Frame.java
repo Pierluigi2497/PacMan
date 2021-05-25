@@ -1,5 +1,6 @@
 import javax.swing.JFrame;
 import javax.swing.JPanel;
+import java.awt.geom.Ellipse2D;
 import java.awt.image.BufferedImage;
 import java.awt.*;
 import java.io.File;
@@ -60,7 +61,7 @@ public class Frame extends JPanel implements Runnable {
     public void paintComponent(Graphics g) {
         super.paintComponent(g);
         g.setColor(Color.WHITE);
-        //622 742
+        drawClip(g);
         drawMap(g);
         //Per disegnare al centro(di ogno quadrato corrispettivo), devo aggiundere la metà di dX e dY ad ogni print
         drawDots(g);
@@ -109,13 +110,13 @@ public class Frame extends JPanel implements Runnable {
     public void drawGhosts(Graphics g){
         for(int i=0;i<4;i++) {
             changeNeSprite(i);
-            g.drawImage(Main.ne[i].n, Main.startx + (Main.dX * Main.ne[i].pathx) + Main.ne[i].tX, Main.starty + (Main.dY * Main.ne[i].pathy) + Main.ne[i].tY, Main.dX, Main.dY, null);
+            g.drawImage(Main.ne[i].n, Main.startx + (Main.dX * Main.ne[i].controller.pathx) + Main.ne[i].controller.getTX(), Main.starty + (Main.dY * Main.ne[i].controller.pathy) + Main.ne[i].controller.getTY(), Main.dX, Main.dY, null);
         }
     }
 
     public void drawPacman(Graphics g){
         changePgSprite();
-        g.drawImage(Main.pg.Pac,Main.startx+(Main.dX * Main.pg.pathx)+Main.pg.tX,Main.starty+(Main.dY * Main.pg.pathy)+Main.pg.tY,Main.dX,Main.dY,null);
+        g.drawImage(Main.pg.Pac,Main.startx+(Main.dX * Main.pg.controller.pathx)+Main.pg.controller.tX,Main.starty+(Main.dY * Main.pg.controller.pathy)+Main.pg.controller.tY,Main.dX,Main.dY,null);
     }
 
     public void drawScore(Graphics g){
@@ -131,14 +132,14 @@ public class Frame extends JPanel implements Runnable {
 
     public void changeNeSprite(int i) {
         //Se il gioco non è finito, continuo con le animazione normali
-        //Per qualche motivo, start deve essere falso per poter far muovere i fantasmini
-        if (!Main.gOver&&!Main.ne[i].start) {
+
+        if (!Main.gOver) {
             if (Main.ne[i].eated) {
-                eatedSprite(Main.ne[i].dir, i);
+                eatedSprite(Main.ne[i].controller.changeDir, i);
                 return;
             }
-            if (Pulse.situation == 0) {
-                switch (Main.ne[i].dir) {
+            if (Pulse.situation == 0 && !Main.ne[i].controller.stop) {
+                switch (Main.ne[i].controller.Direction) {
                     case 'w': {
                         //Ogni 100 ms cambio le gambe del fantasma
                         if (clock.millis() - timeForGhosts < speedGhost) {
@@ -199,19 +200,23 @@ public class Frame extends JPanel implements Runnable {
                 }
             }
         }else{
-            Main.ne[i].n=Main.ne[i].i[0];
+
+            //Main.ne[i].n=Main.ne[i].i[0];
         }
     }
 
     public void blueSprite(int i){
-        if(clock.millis()-timeForGhosts<speedGhost) {
-            Main.ne[i].n = Main.ne[i].i[8];
-        }else
-        if(clock.millis()-timeForGhosts<(speedGhost*2)){
+        if(!Main.ne[i].controller.stop) {
+            if (clock.millis() - timeForGhosts < speedGhost) {
+                Main.ne[i].n = Main.ne[i].i[8];
+            } else if (clock.millis() - timeForGhosts < (speedGhost * 2)) {
+                Main.ne[i].n = Main.ne[i].i[9];
+            } else {
+                timeForGhosts = clock.millis();
+                Main.ne[i].n = Main.ne[i].i[8];
+            }
+        }else{
             Main.ne[i].n = Main.ne[i].i[9];
-        }else {
-            timeForGhosts = clock.millis();
-            Main.ne[i].n = Main.ne[i].i[8];
         }
     }
 
@@ -229,29 +234,51 @@ public class Frame extends JPanel implements Runnable {
         //
         //Prima divento bianco, supponendo di essere già blu, e poi ritorno blu
         //Ogni x ms cambio colore, da bianco a blu
-        //E' la prima volta che entro?
-        if(timeForWhiteGhosts==0){
-            timeForWhiteGhosts= clock.millis();
-        }
-        //Se devo cambiare colore
-        if(clock.millis()-timeForWhiteGhosts<speedWhiteGhosts){
-            //Animazione piedi
-            if(clock.millis()-timeForGhosts<speedGhost){
-                Main.ne[i].n=Main.ne[i].i[10];
-            }else
-                if(clock.millis()-timeForGhosts<(speedGhost*2)){
-                    Main.ne[i].n=Main.ne[i].i[11];
-                }else {
+
+        //Se non ho la testa contro il muro, cambio colore e cammino
+        if(!Main.ne[i].controller.stop) {
+            //E' la prima volta che entro?
+            if (timeForWhiteGhosts == 0) {
+                timeForWhiteGhosts = clock.millis();
+            }
+            //Se devo cambiare colore
+            if (clock.millis() - timeForWhiteGhosts < speedWhiteGhosts) {
+                //Animazione piedi
+                if (clock.millis() - timeForGhosts < speedGhost) {
+                    Main.ne[i].n = Main.ne[i].i[10];
+                } else if (clock.millis() - timeForGhosts < (speedGhost * 2)) {
+                    Main.ne[i].n = Main.ne[i].i[11];
+                } else {
                     timeForGhosts = clock.millis();
-                    Main.ne[i].n=Main.ne[i].i[10];
+                    Main.ne[i].n = Main.ne[i].i[10];
                 }
+            } else {
+                //Divento blu e faccio l'animazione
+                if (clock.millis() - timeForWhiteGhosts < (speedWhiteGhosts * 2)) {
+                    blueSprite(i);
+                } else {
+                    //Se non devo essere più blu, resetto il timer
+                    timeForWhiteGhosts = clock.millis();
+                }
+            }
         }else{
-            //Divento blu e faccio l'animazione
-            if(clock.millis()-timeForWhiteGhosts<(speedWhiteGhosts*2)){
-                blueSprite(i);
-            }else{
-                //Se non devo essere più blu, resetto il timer
-                timeForWhiteGhosts= clock.millis();
+            //Altrimenti cambio solo il colore
+            //E' la prima volta che entro?
+            if (timeForWhiteGhosts == 0) {
+                timeForWhiteGhosts = clock.millis();
+            }
+            //Se devo cambiare colore
+            if (clock.millis() - timeForWhiteGhosts < speedWhiteGhosts) {
+                Main.ne[i].n = Main.ne[i].i[11];
+            }
+            else {
+                //Divento blu e faccio l'animazione
+                if (clock.millis() - timeForWhiteGhosts < (speedWhiteGhosts * 2)) {
+                    Main.ne[i].n = Main.ne[i].i[9];
+                } else {
+                    //Se non devo essere più blu, resetto il timer
+                    timeForWhiteGhosts = clock.millis();
+                }
             }
         }
 
@@ -263,8 +290,8 @@ public class Frame extends JPanel implements Runnable {
             //Sarebbe meglio che la gestisse la classe Frame
         } else {
             //Se il Pacman non ha incontrato un muro, faccio l'animazione altrimenti lascio l'ultima sprite
-            if(!Main.pg.stop) {
-                switch (Main.pg.Direction) {
+            if(!Main.pg.controller.stop) {
+                switch (Main.pg.controller.Direction) {
                     case 'w': {
                         if (clock.millis() - timeForPacman < speedPacman) {
                             Main.pg.Pac = Main.pg.pac[5];
@@ -369,6 +396,16 @@ public class Frame extends JPanel implements Runnable {
     public void drawReady(Graphics g){
         if(!Main.startGame){
             g.drawImage(Main.readyImg,(int)(Main.startx+(Main.trueWidth*0.43)),(int)(Main.trueHeight*0.57),100,18,null);
+        }
+    }
+
+    public void drawClip(Graphics g){
+        for(int i=0;i<Main.Ngiocatori;i++) {
+            if (Main.server.getID() == (i + 2)) {
+                //Imposto un ellisse di visione partendo dalla posizione del fantasmino - la grandezza in pixel del raggio di visione ed aggiungo metà porzione di quadrato di array grafico
+                g.setClip(new Ellipse2D.Double((Main.startx + (Main.dX * Main.ne[i].controller.pathx) + Main.ne[i].controller.tX)-((Main.range*Main.dX)/2)+(Main.dX/2),(Main.starty + (Main.dY * Main.ne[i].controller.pathy) + Main.ne[i].controller.tY)-((Main.range*Main.dX)/2)+(Main.dY/2),(Main.range*Main.dX),(Main.range*Main.dX)));
+                //g.fillOval((Main.startx + (Main.dX * Main.ne[i].controller.pathx) + Main.ne[i].tX)-150, (Main.starty + (Main.dY * Main.ne[i].controller.pathy) + Main.ne[i].tY)-150, 300, 300);
+            }
         }
     }
 

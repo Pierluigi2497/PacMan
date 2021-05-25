@@ -4,19 +4,17 @@ import org.jgrapht.alg.shortestpath.DijkstraShortestPath;
 import org.jgrapht.graph.DefaultEdge;
 import java.awt.image.BufferedImage;
 import java.time.Clock;
-public class Ne implements Runnable {
-    public int pathx,pathy;
+public class Ne  implements Runnable {
     public int bornx,borny; //Queste variabili serviranno per rigenerare il thread
     public int vel=250;
-    public int tX=0;  //Translate x
-    public int tY=0;  //Translate y
+    public int tX=0;  //ghostTranslate x
+    public int tY=0;  //ghostTranslate y
     public BufferedImage[] i=new BufferedImage[13];
     public BufferedImage[] dead=new BufferedImage[4];
     public BufferedImage n;
     private Boolean c=true;
     private Boolean d=true;
     public char ldir=' ';
-    public char dir=' ';
     private Clock clock=Clock.systemDefaultZone();
     //Serve per quando il fantasma deve flashare di bianco
     private long checkms=0;
@@ -26,25 +24,34 @@ public class Ne implements Runnable {
     //Serve alla class Pg
     public boolean ready=true;
     //variabile gestita da Pg per rigenerare Ne
-    public boolean start=true;
+    public boolean start=false;
     public boolean eated=false;
     private DijkstraShortestPath<String, DefaultEdge> dijkstra;
+    private boolean controlled;
+    private boolean activated;
+    public Controller controller;
 
-    public Ne(int x,int y,String a){
+
+    public Ne(int x,int y,String a,boolean controlled,boolean activated){
         bornx=x;
         borny=y;
         color=a;
+        start=false;
+        this.controlled=controlled;
+        this.activated=activated;
+        controller=new Controller(bornx,borny,vel);
         FirstLaunch(bornx,borny,color);
     }
 
     public void FirstLaunch(int x,int y,String a){
-        tX=0;
-        tY=0;
+        controller.tX=0;
+        controller.tY=0;
+        controller.pathx=x;
+        controller.pathy=y;
+        controller.stop=true;
         color=a;
-        pathx=x;
-        pathy=y;
         eated=false;
-        vel=250;
+        controller.vel=250;
         nuovo=true;
         uscito=false;
         //0-1 Destra  2-3 Sinistra  4-5 Sopra  6-7 Sotto  8-9 Blu  10-11 Bianco-Blu  12 Trasparente
@@ -102,10 +109,12 @@ public class Ne implements Runnable {
     }
 
     public void Life(){
+        //Sezione dell'intelligenza artificiale
+
         this.start=false;
         //AZIONI PRELIMINARI
-        if(nuovo){										//aggiungere nella mappa posizioni particolari "nodi/incroci" dove i nemici possono decidere di girare
-            for(;uscito!=true;){corri(esci());}
+        if(nuovo){                                      //aggiungere nella mappa posizioni particolari "nodi/incroci" dove i nemici possono decidere di girare
+            for(;uscito!=true;){corri(esci(),true);}
             Map.maze[12][13]=Map.maze[12][14]='6'; // Muro valicabile solo da morto
             nuovo=false;
             //Scelgo una direzione a caso (sx o dx)
@@ -114,9 +123,9 @@ public class Ne implements Runnable {
             d=(int)(Math.random()*10);
             d++;
             if(d%2==0){
-                corri('a');
+                corri('a',true);
             }else{
-                corri('d');
+                corri('d',true);
             }
         }
         //SVOLGIMENTO
@@ -131,7 +140,7 @@ public class Ne implements Runnable {
             }
             //L'oppure 4 è inserito solo per i nodi a 2 vie
             //Probabilmente mettendo un != 1 funzionerebbe meglio
-            if(Map.maze[pathy][pathx]=='2'||Map.maze[pathy][pathx]=='3'||Map.maze[pathy][pathx]=='4'||Map.maze[pathy][pathx]=='0'||Map.maze[pathy][pathx]=='7'||Map.maze[pathy][pathx]=='5'){ //SE INCONTRA UNNODO
+            if(Map.maze[controller.getPathY()][controller.getPathX()]=='2'||Map.maze[controller.getPathY()][controller.getPathX()]=='3'||Map.maze[controller.getPathY()][controller.getPathX()]=='4'||Map.maze[controller.getPathY()][controller.getPathX()]=='0'||Map.maze[controller.getPathY()][controller.getPathX()]=='7'||Map.maze[controller.getPathY()][controller.getPathX()]=='5'){ //SE INCONTRA UNNODO
                 //Se non sono mangiabile e riesco a vedere Pacman OPPURE se non sono mangiato
                 if(eated){
                     if(goToHome()) {
@@ -147,16 +156,23 @@ public class Ne implements Runnable {
                     }
                 }else{
                     if((radar()&&Main.Eat==0)){
-                      corri(Follow(Main.pg.nodex,Main.pg.nodey));
+                        try {
+                            corri(Follow(Main.pg.nodex, Main.pg.nodey), true);
+                        }catch (Exception e){
+                            corri(ldir,true);
+                        }
                     }
-                 else{
-                     //Se sono mangiabile, fuggo
-                     //Altrimenti corro a cazzo
+                    else{
+                        //Se sono mangiabile, fuggo
+                        //Altrimenti corro a cazzo
                         if(Main.Eat==1)
                             Fuga();
-                        else
-                            corri(cieco());
-                  }
+                        else {
+                            try {
+                                corri(cieco(), true);
+                            }catch (Exception e){corri(ldir,true);}
+                        }
+                    }
                 }
             }
 
@@ -178,28 +194,138 @@ public class Ne implements Runnable {
     }
 
     public void run(){
-        for(;;){
-            uscito=false;
-            nuovo=true;
-            Map.maze[12][13]=Map.maze[12][14]='3';
-            //Quando Pg vuole, e tutti sono pronti, tutti i nemici si rigenerano
-            if(!this.start){
-                try {
-                    Thread.sleep(20);
-                }catch (Exception e){}
+        //Se devo utilizzare l'intelligenza artificiale per muovermi
+        if(activated) {
+            for (; ; ) {
+                uscito = false;
+                nuovo = true;
+                Map.maze[12][13] = Map.maze[12][14] = '3';
+                //Quando Pg vuole, e tutti sono pronti, tutti i nemici si rigenerano
+                if (!this.start) {
+                    try {
+                        Thread.sleep(20);
+                    } catch (Exception e) {
+                    }
+                } else {
+                    n = i[0];
+                    //Do qualche secondo di vantaggio
+                    try {
+                        Thread.sleep(1500);
+                    } catch (Exception e) {
+
+                    }
+                    if (Main.startGame) {
+                        Life();
+                    }
+                }
+            }
+        }
+        else{
+            if (controlled) {
+                n = i[0];
+                for (; ; ) {
+                    if (!this.start) {
+                        try {
+                            Thread.sleep(20);
+                        } catch (Exception e) {
+                        }
+                    } else {
+                        //Do qualche secondo di vantaggio
+                        try {
+                            Thread.sleep(1500);
+                        } catch (Exception e) {
+
+                        }
+                        if (Main.startGame) {
+
+
+                            //Seguo le indicazioni di controller.changeDir
+                            start = false;
+                            ready = false;
+                            for (; ; ) {
+                                if (Main.gOver || Main.stop) {
+                                    //Quando muore pacman, i fantasmi spariscono fino alla sua rinascita
+                                    n = i[12];
+                                    System.out.println(Main.gOver + "," + Main.stop);
+                                    break;
+                                }
+                                switch (controller.changeDir) {
+                                    case 'a': {
+                                        controller.MoveSx(true);
+                                        ldir = 'a';
+                                        if (controller.Direction != 'a')
+                                            controller.changeDir = controller.Direction;
+                                    }
+                                    break;
+                                    case 'd': {
+                                        controller.MoveDx(true);
+                                        ldir = 'd';
+                                        if (controller.Direction != 'd')
+                                            controller.changeDir = controller.Direction;
+                                    }
+                                    break;
+                                    case 's': {
+                                        controller.MoveDw(true);
+                                        ldir = 's';
+                                        if (controller.Direction != 's')
+                                            controller.changeDir = controller.Direction;
+                                    }
+                                    break;
+                                    case 'w': {
+                                        controller.MoveUp(true);
+                                        ldir = 'w';
+                                        if (controller.Direction != 'w')
+                                            controller.changeDir = controller.Direction;
+                                    }
+                                    break;
+                                    default: {
+                                        //Se viene premuto un tasto non consentito, changeDir viene cambiata nell'ultima direzione
+                                        controller.changeDir = ldir;
+                                        //Per qualche motivo, il buffered out causa problemi quindi eseguo un flush
+                                        System.out.flush();
+                                    }
+                                    break;
+                                }
+                                try {
+                                    Thread.sleep(10);
+                                } catch (Exception e) {
+
+                                }
+                            }
+                            n = i[12];
+                            FirstLaunch(bornx, borny, color);
+
+                            this.start = false;
+                            this.ready = true;
+                        }
+                    }
+                }
             }
             else{
-            n=i[0];
-            //Do qualche secondo di vantaggio
-            try {
-                Thread.sleep(1500);
-            }catch (Exception e){
 
+                //Seguo le indicazioni di dir(COLORE)
+                n = i[0];
+                start = false;
+                ready = false;
+                for (; ; ) {
+                    if (Main.gOver || Main.stop) {
+                        //Quando muore pacman, i fantasmi spariscono fino alla sua rinascita
+                        n = i[12];
+                        break;
+                    }
+                    corri(controller.changeDir,false);
+                    try{
+                        Thread.sleep(10);
+                    }catch (Exception e){
+
+                    }
+                }
+                n = i[12];
+                FirstLaunch(bornx, borny, color);
+
+                this.start = false;
+                this.ready = true;
             }
-            if(Main.startGame) {
-                Life();
-            }
-          }
         }
     }
 
@@ -207,7 +333,7 @@ public class Ne implements Runnable {
     //X-pacman Y-pacman X-fantasma Y-fantasma Distanza_percorsa Distanza_da_pacman
     public char Follow(int x,int y) {
         GraphPath<String,DefaultEdge> graphPath=null;
-        try{graphPath = dijkstra.findPathBetween(Map.graph,(pathy+","+pathx),(y+","+x));}
+        try{graphPath = dijkstra.findPathBetween(Map.graph,(controller.getPathY()+","+controller.getPathX()),(y+","+x));}
         catch (IllegalArgumentException e){ldir=cieco();return ldir;}
 
         //prendo solo il secondo elemento della lista di archi ritornata
@@ -224,9 +350,9 @@ public class Ne implements Runnable {
             goy = Integer.parseInt(graphPath.getVertexList().get(0).split(",")[0]);
         }
         //Se il fantasma si dovrebbe muovere sull'asse x, procedo con l'asse x altrimenti con y
-        if(gox!=pathx){
+        if(gox!=controller.getPathX()){
             //Sopra o sotto
-            if(gox>pathx){
+            if(gox>controller.getPathX()){
                 ldir='d';
                 return 'd';
             }else{
@@ -234,9 +360,9 @@ public class Ne implements Runnable {
                 return 'a';
             }
         }else
-        if(goy!=pathy){
+        if(goy!=controller.getPathY()){
             //Destra o sinistra
-            if(goy>pathy){
+            if(goy>controller.getPathY()){
                 ldir='s';
                 return 's';
             }else{
@@ -245,7 +371,7 @@ public class Ne implements Runnable {
             }
         }
         //Se sono a casa ritorno r e sono già spawnato
-        if((pathx==14&&pathy==14)&&nuovo==false)
+        if((controller.getPathX()==14&&controller.getPathY()==14)&&nuovo==false)
             return 'r';
 
         //Se non so dove andare(sono nella direzione del tunnel), vado nell'ultima direzione presa
@@ -254,30 +380,30 @@ public class Ne implements Runnable {
 
 
     public char esci() {
-        if(pathy==11){uscito=true;return 'o';}
+        if(controller.getPathY()==11){uscito=true;return 'o';}
 
 
-        if(((pathx==13)||(pathx==14))){
+        if(((controller.getPathX()==13)||(controller.getPathX()==14))){
             return('w');}
 
         else{
-            if(Map.maze[pathy-1][pathx]!='1'&&pathy>11){
+            if(Map.maze[controller.getPathY()-1][controller.getPathX()]!='1'&&controller.getPathY()>11){
                 return('w');}
             else
-            if(Map.maze[pathy+1][pathx]!='1'&&pathy<11){
+            if(Map.maze[controller.getPathY()+1][controller.getPathX()]!='1'&&controller.getPathY()<11){
                 return('s');}
             else
-            if(Map.maze[pathy][pathx+1]!='1'&&pathx<13){
+            if(Map.maze[controller.getPathY()][controller.getPathX()+1]!='1'&&controller.getPathX()<13){
                 return('d');}
             else
-            if(Map.maze[pathy][pathx-1]!='1'&&pathx>13){
+            if(Map.maze[controller.getPathY()][controller.getPathX()-1]!='1'&&controller.getPathX()>13){
                 return('a');}
         }
         return 'o';
     }
 
 
-    public char cieco(){							//funzione che trova una direzione da prendere per il png in maniera casuale
+    public char cieco(){                            //funzione che trova una direzione da prendere per il png in maniera casuale
         int l=0;
         char w[]=new char[4];
         //Azzero l'array w
@@ -286,25 +412,25 @@ public class Ne implements Runnable {
         }
         //Quante direzioni ho disponibili?
         //Controllo tutte e 4 ed aggiorno il counter
-        if(Map.maze[pathy][pathx+1]!='1'){
+        if(Map.maze[controller.getPathY()][controller.getPathX()+1]!='1'){
             if(ldir!='a') {
                 l++;
                 w[0]='d';
             }
         }
-        if(Map.maze[pathy+1][pathx]!='1'){
+        if(Map.maze[controller.getPathY()+1][controller.getPathX()]!='1'){
             if(ldir!='w') {
                 l++;
                 w[1]='s';
             }
         }
-        if(Map.maze[pathy][pathx-1]!='1'){
+        if(Map.maze[controller.getPathY()][controller.getPathX()-1]!='1'){
             if(ldir!='d') {
                 l++;
                 w[2]='a';
             }
         }
-        if(Map.maze[pathy-1][pathx]!='1'){
+        if(Map.maze[controller.getPathY()-1][controller.getPathX()]!='1'){
             if(ldir!='s') {
                 l++;
                 w[3]='w';
@@ -315,7 +441,7 @@ public class Ne implements Runnable {
             if(w[i]==' '){
                 for(int j=i+1;j<4;j++) {
                     if(w[j]!=' ') {
-                     //Scambio di posto
+                        //Scambio di posto
                         w[i] = w[j];
                         w[j] = ' ';
                         //esco dal secondo for
@@ -379,122 +505,44 @@ public class Ne implements Runnable {
     public boolean radar(){
 
         //Se rientra nel raggio
-        if(Math.abs(pathx-Main.pg.pathx)<(Main.range/2)&&Math.abs(pathy-Main.pg.pathy)<(Main.range/2))
+        if(Math.abs(controller.getPathX()-Main.pg.controller.getPathX())<(Main.range/2)&&Math.abs(controller.getPathY()-Main.pg.controller.getPathY())<(Main.range/2))
             return true;
         else
             return false;
     }
 
-    //Aumenta i pixel di un quadrato di array grafico(la grandezza di uno spostamento reale) per creare una transizione
-    public void Trans(char dir){
-        //Inserisco all'interno di ogni for un controllo di morte Pacman per accellerare la rigeneragione del gioco
-        int v;
-
-
-        if(dir=='w'||dir=='s'){
-            v=(int)(vel/Main.dY);
-            if(dir=='w'){
-                while(Map.maze[pathy-1][pathx]!='1'){
-                    for(tY=0;Math.abs(tY)!=(int)Main.dY;tY--){
-                        if(Main.gOver)
-                            return ;
-
-                        try{Thread.sleep(v);}catch(Exception e){}
-                    }
-                    tY=0;
-                    pathy--;
-                    if(Map.maze[pathy][pathx]=='2'||Map.maze[pathy][pathx]=='3'||Map.maze[pathy][pathx]=='5')
-                        break;}
-
-            }
-            else{
-                while(Map.maze[pathy+1][pathx]!='1'){
-                    for(tY=0;Math.abs(tY)!=(int)Main.dY;tY++){
-                        if(Main.gOver)
-                            return ;
-                        try{Thread.sleep(v);}catch(Exception e){}
-                    }
-                    tY=0;
-                    pathy++;
-                    if(Map.maze[pathy][pathx]=='2'||Map.maze[pathy][pathx]=='3'||Map.maze[pathy][pathx]=='5')
-                        break;
-                }
-
-            }
+    public void corri(char direzione,boolean toSend){
+        if(Main.server.getID()==99){
+            //Se sono nel singleplayer, per evitare problemi imposto changeDir
+            controller.changeDir=direzione;
         }
-        else {
-            v=(int)(vel/Main.dX);
-            if(dir=='a'){
-                try{
-                    while(Map.maze[pathy][pathx-1]!='1'){
-                        for(tX=0;Math.abs(tX)!=(int)Main.dX;tX--){
-                            if(Main.gOver)
-                                return ;
-                            try{Thread.sleep(v);}catch(Exception e){}
-                        }
-                        tX=0;
-                        pathx--;
-                        //Se incontro un incrocio, esco dalla transizione e vedo quale direzione prendere
-                        //Esco pure se incontro un 7(Punto di rigenerazione) perchè il fantasmino deve uscire da casa
-                        if(Map.maze[pathy][pathx]=='2'||Map.maze[pathy][pathx]=='3'||Map.maze[pathy][pathx]=='7'||Map.maze[pathy][pathx]=='5')
-                            break;
-                    }
-                }catch(Exception e){
-                    //Sono qui perchè sono uscito dalla mappa, se ho preso un tunnel, mi teletrasporto
-                    if(pathx==0){
-
-                    }
-                    for(tX=0;Math.abs(tX)!=(int)Main.dX;tX--){
-                        //aSprite(dir);
-                        if(Main.gOver)
-                            return ;
-                        try{Thread.sleep(v);}catch(Exception a){}
-                    }
-                    tX=0;
-                    pathx=27;Trans('a');}
-            }
-            else{
-                try{
-                    while(Map.maze[pathy][pathx+1]!='1'){
-                        for(tX=0;Math.abs(tX)!=(int)Main.dX;tX++){
-                            if(Main.gOver)
-                                return ;
-                            try{Thread.sleep(v);}catch(Exception e){}
-                        }
-                        tX=0;
-                        pathx++;
-                        if(Map.maze[pathy][pathx]=='2'||Map.maze[pathy][pathx]=='3'||Map.maze[pathy][pathx]=='7'||Map.maze[pathy][pathx]=='5')
-                            break;
-                    }}catch(Exception e){
-                    for(tX=0;Math.abs(tX)!=(int)Main.dX;tX++){
-                       // aSprite(dir);
-                       if(Main.gOver)
-                            return ;
-                        try{Thread.sleep(v);}catch(Exception a){}
-                    }
-                    pathx=0;
-                    tX=0;
-                    Trans('d');}
-            }
-        }
-    }
-
-    public void corri(char direzione){
-
-        //Valori Direzione:
-        //w=su  d=destra  s=giù  a=sinistra
-        dir=direzione;
         switch(direzione){
-            case 'w':{Trans('w');}break;
-
-            case 'd':{
-                Trans('d');}break;
-
-            case 's':{
-                Trans('s');}break;
-
             case 'a':{
-                Trans('a');}break;
+                controller.MoveSx(toSend);
+                ldir='a';
+                if(controller.Direction!='a')
+                    controller.changeDir=controller.Direction;}break;
+            case 'd':{
+                controller.MoveDx(toSend);
+                ldir='d';
+                if(controller.Direction!='d')
+                    controller.changeDir=controller.Direction;}break;
+            case 's':{
+                controller.MoveDw(toSend);
+                ldir='s';
+                if(controller.Direction!='s')
+                    controller.changeDir=controller.Direction;}break;
+            case 'w':{
+                controller.MoveUp(toSend);
+                ldir='w';
+                if(controller.Direction!='w')
+                    controller.changeDir=controller.Direction;}break;
+            default: {
+                //Se viene premuto un tasto non consentito, changeDir viene cambiata nell'ultima direzione
+                controller.changeDir=ldir;
+                //Per qualche motivo, il buffered out causa problemi quindi eseguo un flush
+                System.out.flush();
+            }break;
         }
     }
 
@@ -502,7 +550,7 @@ public class Ne implements Runnable {
     //DA SISTEMARE
     //Prima di sistemare questo metodo, probabilmente bisogna sistemare il metodo Follow
     public void Fuga(){
-        corri(cieco());
+        corri(cieco(),true);
     }
 
     public boolean goToHome(){
@@ -511,11 +559,9 @@ public class Ne implements Runnable {
         //ritorno true, quindi rigenero il fantasma senza cambiare la sua posizione
         if(c=='r')
             return true;
-        corri(c);
+        corri(c,true);
         return false;
     }
 
+
 }
-
-
-

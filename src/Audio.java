@@ -38,19 +38,18 @@ public class Audio implements Runnable{
 
     public void run(){
         //Ho mangiato una qualunque pallina, avvio il suono
-        while(true) {
+        /*while(true) {
             if(!Main.startGame){
                 timerBeginning= clock.millis();
                 beginningClip.start();
             }
-            /*if(!beginningClip.isActive()&&!deathClip.isActive()){
+            *//*if(!beginningClip.isActive()&&!deathClip.isActive()){
                 sirenClip.loop(Clip.LOOP_CONTINUOUSLY);
-            }*/
+            }*//*
             if ((dots-Main.dots>1) && timerChomp == 0 && !stopDots) {
                 dots=Main.dots;
                 timerChomp = clock.millis();
                 chompClip.start();
-                System.out.println(clock.millis() - tmp);
             }
             if (Main.gOver) {
                 timerDeath = clock.millis();
@@ -66,7 +65,7 @@ public class Audio implements Runnable{
                 Thread.sleep(1);
             } catch (Exception e) {
             }
-        }
+        }*/
     }
 
     public Audio(){

@@ -1,37 +1,42 @@
-//IL PACMAN NON E BEN SINCRONIZZATO CON IL REPAINT, A CAUSA DI CIO L'ANIMAZIONE NON E BELLISSIMA
 import java.awt.image.BufferedImage;
+import java.io.IOException;
 
-public class Pg implements Runnable{
-    public int pathx,pathy;
+public class Pg implements Runnable {
+    //public int controller.pathx,controller.pathy;
     public char nodex,nodey;
-    public int tX=0;  //Translate x
-    public int tY=0;  //Translate y
-    public int vel=200;//Inversa in ms
+    /*public int tX=0;  //Translate x
+    public int tY=0;  //Translate y*/
+    public int vel=200;//Inversa in ms*/
+    public char ldir;
     public BufferedImage[] death=new BufferedImage[13];//1 immagine trasparente
     public BufferedImage[] pac=new BufferedImage[10];
     public BufferedImage Pac;
+    private boolean controlled;
     private Boolean c=true;
-    public char Direction=' ';
+    /*public char controller.Direction=' ';*/
     //Serve per sincronizzare i nemici ed il Pg
     static Boolean Restart=false;
+    public Controller controller;
     //Serve per dire alla classe frame quando il Pacman deve fermare l'animazione e quando no
     //All'inizio l'animazione è ferma, poi si muove finche non trova un muro
-    public boolean stop=true;
+    /*public boolean stop=true;*/
 
-    public Pg(int x,int y){
+    public Pg(int x,int y,boolean controlled){
+        controller=new Controller(x,y,vel);
+        this.controlled=controlled;
         FirstLunch(x,y);
     }
 
     public void FirstLunch(int x,int y){
         //Resetto la posizione
-        pathx=x;
-        pathy=y;
+        controller.pathx=x;
+        controller.pathy=y;
         //Resetto ultimo nodo letto
         nodex=6;
         nodey=9;
         //Resetto variabili d'animazione
-        tX=0;
-        tY=0;
+        controller.tX=0;
+        controller.tY=0;
 
 
         pac[0]=Main.img.getSubimage(36,1,13,13);
@@ -61,110 +66,71 @@ public class Pg implements Runnable{
         death[12]=Main.img.getSubimage(0,0,1,1);
     }
 
-    public void MoveDx(){
-        try{
-            //Se mi trovo all'inizio della mappa(per l'asse x)
-            //Per evitare IndexOut
-            //Sono sicuro che posso andare a destra o a sinistra(Unica possibilità per i tunnel)
-            //Quindi salto il primo controllo
-            if(pathx==27&&!Main.gOver){
-                Direction='d';
-                Trans('d');
-            }else{
-                 if(Map.maze[pathy][pathx+1]!='1'&&!Main.gOver){
-                     Direction='d';
-                     stop=false;
-                     Trans('d');
-                 }else{
-                     //Se trovo un muro fermo l'animazione
-                     stop=true;
-                 }
-            }
-        }
-        catch(Exception e){Trans('d');}
-    }
-
-    public void MoveSx(){
-        try {
-            //PRIMA FUNZIONAVA
-            //Se mi trovo all'inizio della mappa(per l'asse x)
-            //Per evitare IndexOut
-            //Sono sicuro che posso andare a destra o a sinistra(Unica possibilità per i tunnel)
-            //Quindi salto il primo controllo
-            if (pathx == 0 && !Main.gOver) {
-                Direction = 'a';
-                Trans('a');
-            } else {
-                if (Map.maze[pathy][pathx - 1] != '1' && !Main.gOver) {
-                    Direction = 'a';
-                    stop=false;
-                    Trans('a');
-                }else {
-                    //Se trovo un muro fermo l'animazione
-                    stop=true;
-                }
-            }
-        }catch(Exception e){Trans('a');}
-    }
-
-    public void MoveUp(){
-        if(Map.maze[pathy-1][pathx]!='1'&&!Main.gOver){
-            Direction='w';
-            stop=false;
-            Trans('w');
-        }else{
-            //Se trovo un muro fermo l'animazione
-            stop=true;
-        }
-    }
-
-    public void MoveDw(){
-        if(Map.maze[pathy+1][pathx]!='1'&&!Main.gOver){
-            Direction='s';
-            stop=false;
-            Trans('s');
-        }else{
-            //Se trovo un muro fermo l'animazione
-            stop=true;
-        }
-    }
-
     public void run(){
-        for(;;) {
-            //Imposto direzione=k (killed)
-            Direction='k';
-            //In quuesto modo la classe frame sà che non deve far animare il pacman
-            //Verifico che tutti i fantasmi siano pronti
-            for(int i=0;i<Main.Ngiocatori;){
-                if(Main.ne[i].ready){
-                    i++;
+        if(controlled) {
+            for (; ; ) {
+                //Imposto direzione=k (killed)
+                controller.Direction = 'k';
+                //In questo modo la classe frame sà che non deve far animare il pacman
+                //Verifico che tutti i fantasmi siano pronti
+                for (int i = 0; i < Main.Ngiocatori; ) {
+                    if (Main.ne[i].ready) {
+                        i++;
+                    }
+                    try {
+                        Thread.sleep(20);
+                    } catch (Exception e) {
+                    }
                 }
+                //Tutti i fantasmi sono pronti, li libero dal loop
+                for (int i = 0; i < Main.Ngiocatori; i++) {
+                    Main.ne[i].start = true;
+                    Main.ne[i].ready = false;
+
+                }
+                //Quando esco dal ciclo, faccio partire tutti i nemici
+                Restart = true;
                 try {
-                    Thread.sleep(20);
-                }catch (Exception e){}
-            }
-            //Tutti i fantasmi sono pronti, li libero dal loop
-            for(int i=0;i<Main.Ngiocatori;i++){
-                Main.ne[i].start=true;
-                Main.ne[i].ready=false;
-            }
-            //Quando esco dal ciclo, faccio partire tutti i nemici
-            Restart=true;
-            try{
-                //Aspetto 30 ms (Tempo massimo di sincronizzazione impostato su Ne)
-                Thread.sleep(30);
-            }catch (Exception e){}
-            Restart=false;
-            Main.gOver=false;
-            Pac=pac[0];
-            //Aspetto che l'audio beginning finisca prima di iniziare il gioco
-            if(!Audio.beginningClip.isActive()) {
-                if (Main.cdir == ' ') {
-                    Main.startGame = true;
+                    //Aspetto 30 ms (Tempo massimo di sincronizzazione impostato su Ne)
+                    Thread.sleep(30);
+                } catch (Exception e) {
                 }
-                if (Main.startGame) {
-                    Audio.stopDots = false;
-                    Life();
+                Restart = false;
+                Main.gOver = false;
+                Pac = pac[0];
+                //Aspetto che l'audio beginning finisca prima di iniziare il gioco
+                if (!Audio.beginningClip.isActive()) {
+                    if (controller.changeDir == ' ') {
+                        Main.startGame = true;
+                    }
+                    if (Main.startGame) {
+                        //Invio al server le informazioni sui fantasmini
+                        for(int i=0;i<Main.Ngiocatori;i++) {
+                            try {
+                                Main.server.sendDir("7-"+(i + 2) + ":" + Main.ne[i].controller.changeDir + "," + Main.ne[i].controller.pathx + "," + Main.ne[i].controller.pathy + "," + Main.ne[i].controller.tX + "," + Main.ne[i].controller.tY + "," + true + "," + Main.ne[i].controller.vel + "," + true + "," + false);
+                            } catch (Exception e) {
+                                e.printStackTrace();
+                            }
+                        }
+                        Audio.stopDots = false;
+                        try {
+                            Main.server.sendDir("6:" +
+                                    Main.gOver + "," +
+                                    Restart + "," +
+                                    Main.startGame + "," +
+                                    Main.Life + "," +
+                                    Pulse.win + "," +
+                                    Main.Level
+                            );
+                        }catch (Exception e){}
+                        Life();
+                    } else {
+                        //Tutti i fantasmi sono pronti, li libero dal loop
+                        for (int i = 0; i < Main.Ngiocatori; i++) {
+                            Main.ne[i].start = true;
+                            Main.ne[i].ready = true;
+                        }
+                    }
                 } else {
                     //Tutti i fantasmi sono pronti, li libero dal loop
                     for (int i = 0; i < Main.Ngiocatori; i++) {
@@ -172,15 +138,79 @@ public class Pg implements Runnable{
                         Main.ne[i].ready = true;
                     }
                 }
-            }else{
-                //Tutti i fantasmi sono pronti, li libero dal loop
-                for (int i = 0; i < Main.Ngiocatori; i++) {
-                    Main.ne[i].start = true;
-                    Main.ne[i].ready = true;
+                //Quando il pg muore o la partita si resetta, chiamo una funzione per resettare i valori e l'altra per dare
+                //vita al PG
+            }
+        }
+        else {
+            for (; ; ) {
+                //FirstLunch(6,9);
+                Restart = false;
+                Main.gOver = false;
+                Pac = pac[0];
+                for (; ; ) {
+
+                    if (Main.gOver) {
+                        for (int i = 0; i < 13; i++) {
+                            Pac = death[i];
+                            try {
+                                Thread.sleep(75);
+                            } catch (Exception e) {
+                            }
+                        }
+                        Pac = pac[9];
+                        if (Main.Life == 0) {
+                            Pulse.resetAll();
+                        } else {
+                            //Se il gameover è causato da una vittoria, non diminuisco le vite
+                            if (!Pulse.win) {
+                                Main.Life--;
+                            }
+                            Pulse.win = false;
+                        }
+                        break;
+                    }
+                    if (Main.stop) {
+                        return;
+                    }
+                    switch (controller.changeDir) {
+                        case 'a': {
+                            controller.Direction = 'a';
+                            controller.MoveSx(false);
+                            if (controller.Direction != 'a')
+                                controller.changeDir = controller.Direction;
+                        }
+                        break;
+                        case 'd': {
+                            controller.Direction = 'd';
+                            controller.MoveDx(false);
+                            if (controller.Direction != 'd')
+                                controller.changeDir = controller.Direction;
+                        }
+                        break;
+                        case 's': {
+                            controller.Direction = 's';
+                            controller.MoveDw(false);
+
+                            if (controller.Direction != 's')
+                                controller.changeDir = controller.Direction;
+                        }
+                        break;
+                        case 'w': {
+                            controller.Direction = 'w';
+                            controller.MoveUp(false);
+                            if (controller.Direction != 'w')
+                                controller.changeDir = controller.Direction;
+                        }
+                        break;
+                    }
+                    try {
+                        Thread.sleep(10);
+                    } catch (Exception e) {
+
+                    }
                 }
             }
-            //Quando il pg muore o la partita si resetta, chiamo una funzione per resettare i valori e l'altra per dare
-            //vita al PG
         }
     }
 
@@ -207,33 +237,42 @@ public class Pg implements Runnable{
                 return;
             }
             //Se sono ad un incrocio, aggiorno nodex e nodey
-            if(Map.maze[pathy][pathx]=='2'||Map.maze[pathy][pathx]=='3'||Map.maze[pathy][pathx]=='5'){
-                nodex=(char)pathx;
-                nodey=(char)pathy;
+            if(Map.maze[controller.pathy][controller.pathx]=='2'||Map.maze[controller.pathy][controller.pathx]=='3'||Map.maze[controller.pathy][controller.pathx]=='5'){
+                nodex=(char)controller.pathx;
+                nodey=(char)controller.pathy;
             }
-            switch(Main.cdir){
+
+            switch(controller.changeDir){
                 case 'a':{
-                    MoveSx();
-                    if(Direction!='a')
-                        Main.cdir=Direction;}
+                    controller.MoveSx(true);
+                    ldir='a';
+                    if(controller.Direction!='a')
+                        controller.changeDir=controller.Direction;}
                 break;
                 case 'd':{
-                    MoveDx();
-                    if(Direction!='d')
-                        Main.cdir=Direction;}break;
+                    controller.MoveDx(true);
+                    ldir='d';
+                    if(controller.Direction!='d')
+                        controller.changeDir=controller.Direction;}break;
                 case 's':{
-                    MoveDw();
-
-                    if(Direction!='s')
-                        Main.cdir=Direction;}break;
+                    controller.MoveDw(true);
+                    ldir='s';
+                    if(controller.Direction!='s')
+                        controller.changeDir=controller.Direction;}break;
                 case 'w':{
-                    MoveUp();
-                    if(Direction!='w')
-                        Main.cdir=Direction;}break;
+                    controller.MoveUp(true);
+                    ldir='w';
+                    if(controller.Direction!='w')
+                        controller.changeDir=controller.Direction;}break;
+                default:{
+                    //Se ho premuto un tasto diverso dai consentiti, ripristino la variabile changeDir su l'ultima direzione consentita
+                    controller.changeDir=ldir;
+                }
             }
             try {
                 Thread.sleep(10);
             }catch (Exception e){
+
 
             }
         }
@@ -246,165 +285,5 @@ public class Pg implements Runnable{
         try{Thread.sleep(2000);}catch (Exception e){}
         return ;
     }
-
-    //Aumenta i pixel di un quadrato di array grafico(la grandezza di uno spostamento reale) per creare una transizione
-    public void Trans(char dir){
-        int v=8; //8-default
-        if(dir=='w'||dir=='s'){
-            if(dir=='w'){
-                for(tY=0;Math.abs(tY)!=(int)Main.dY;tY--){
-                    //Se ricevo un cambio direzione, me ne frego dell'animazione solo se posso farlo
-                    if(Main.cdir!=dir){
-                        if(ControlloDir(Main.cdir)){
-                            Direction=Main.cdir;
-                            while(tY!=0){
-                                tY++;
-                                //Se muoio, termino l'animazione
-                                if(Main.gOver){
-                                    return ;
-                                }
-                                try{Thread.sleep(v);}catch(Exception e){}
-                            }
-                            return ;
-                        }}
-                    //Se muoio, termino l'animazione
-                    if(Main.gOver){
-                        return ;
-                    }
-                    try{Thread.sleep(v);}catch(Exception e){}
-                }
-                tY=0;
-                pathy--;}
-            else{
-                for(tY=0;Math.abs(tY)!=(int)Main.dY;tY++){
-                    //Se ricevo un cambio direzione, me ne frego dell'animazione solo se posso farlo
-                    if(Main.cdir!=dir){
-                        if(ControlloDir(Main.cdir)){
-                            Direction=Main.cdir;
-                            while(tY!=0){
-                                //aSprite('w');
-                                tY--;
-                                //Se muoio, termino l'animazione
-                                if(Main.gOver){
-                                    return ;
-                                }
-                                try{Thread.sleep(v);}catch(Exception e){}
-                            }
-                            return ;
-                        }
-                        }
-                    if(Main.gOver){
-                        return ;
-                    }
-                    try{Thread.sleep(v);}catch(Exception e){}
-                }
-                tY=0;
-                pathy++;
-            }
-        }
-
-        else {
-            if(dir=='a'){
-                for(tX=0;Math.abs(tX)!=(int)Main.dX;tX--){
-                    //Se ricevo un cambio direzione, me ne frego dell'animazione solo se posso farlo
-                    if(Main.cdir!=dir) {
-                        if (ControlloDir(Main.cdir)) {
-                            Direction=Main.cdir;
-                            while (tX != 0) {
-                                tX++;
-                                //Se muoio, termino l'animazione
-                                if(Main.gOver){
-                                    return ;
-                                }
-                                try {
-                                    Thread.sleep(v);
-                                } catch (Exception e) {
-                                }
-                            }
-                            return;
-                        }
-                    }
-                    if(Main.gOver){
-                        return ;
-                    }
-                    try{Thread.sleep(v);}catch(Exception e){}
-                }
-                tX=0;
-                if((pathx-1)!=-1)
-                    pathx--;
-                else
-                    pathx=27;
-            }
-            else{
-                for(tX=0;Math.abs(tX)!=(int)Main.dX;tX++){
-                    //Se ricevo un cambio direzione, me ne frego dell'animazione solo se posso farlo
-                    if(Main.cdir!=dir){
-                        if(ControlloDir(Main.cdir))
-                            //Se cambio direzione faccio un'animazione inversa per poi fare l'animazione giusta
-                        {
-                            Direction=Main.cdir;
-                        while(tX!=0){
-                            tX--;
-                            //Se muoio, termino l'animazione
-                            if(Main.gOver){
-                                return ;
-                            }
-                            try{Thread.sleep(v);}catch(Exception e){}
-                        }
-                            return;
-                        }}
-                    if(Main.gOver){
-                        return ;
-                    }
-                    try{Thread.sleep(v);}catch(Exception e){}
-                }
-                tX=0;
-                if((pathx+1)!=28)
-                    pathx++;
-                else
-                    pathx=0;
-            }
-        }
-
-
-
-
-    }
-
-    public Boolean ControlloDir(char dir){
-        switch(dir){
-            case 'w': {
-                if(Map.maze[pathy-1][pathx]!='1'&&!Main.gOver){
-                    return true;
-                }
-            }break;
-            case 'a': {
-                //Sono al tunnel? per evitare guai ritorno true
-                if(pathx==0)
-                    return true;
-                if(Map.maze[pathy][pathx-1]!='1'&&!Main.gOver){
-                    return true;
-                }
-            }break;
-            case 's': {
-                if(Map.maze[pathy+1][pathx]!='1'&&!Main.gOver){
-                    return true;
-                }
-            }break;
-            case 'd': {
-                //Sono al tunnel? per evitare guai ritorno true
-                if(pathx==27)
-                    return true;
-                if (Map.maze[pathy][pathx + 1] != '1' && !Main.gOver) {
-                    return true;
-                }
-            }
-        }
-        return false;
-    }
-
-
-
-
 
 }
