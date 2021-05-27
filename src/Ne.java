@@ -7,8 +7,6 @@ import java.time.Clock;
 public class Ne  implements Runnable {
     public int bornx,borny; //Queste variabili serviranno per rigenerare il thread
     public int vel=250;
-    public int tX=0;  //ghostTranslate x
-    public int tY=0;  //ghostTranslate y
     public BufferedImage[] i=new BufferedImage[13];
     public BufferedImage[] dead=new BufferedImage[4];
     public BufferedImage n;
@@ -114,19 +112,7 @@ public class Ne  implements Runnable {
         this.start=false;
         //AZIONI PRELIMINARI
         if(nuovo){                                      //aggiungere nella mappa posizioni particolari "nodi/incroci" dove i nemici possono decidere di girare
-            for(;uscito!=true;){corri(esci(),true);}
-            Map.maze[12][13]=Map.maze[12][14]='6'; // Muro valicabile solo da morto
-            nuovo=false;
-            //Scelgo una direzione a caso (sx o dx)
-            //chiamo cieco() per scegliere una direzione a caso che non sia su o giu
-            int d;
-            d=(int)(Math.random()*10);
-            d++;
-            if(d%2==0){
-                corri('a',true);
-            }else{
-                corri('d',true);
-            }
+            exitGhost();
         }
         //SVOLGIMENTO
         for(;;){
@@ -140,15 +126,19 @@ public class Ne  implements Runnable {
             }
             //L'oppure 4 è inserito solo per i nodi a 2 vie
             //Probabilmente mettendo un != 1 funzionerebbe meglio
-            if(Map.maze[controller.getPathY()][controller.getPathX()]=='2'||Map.maze[controller.getPathY()][controller.getPathX()]=='3'||Map.maze[controller.getPathY()][controller.getPathX()]=='4'||Map.maze[controller.getPathY()][controller.getPathX()]=='0'||Map.maze[controller.getPathY()][controller.getPathX()]=='7'||Map.maze[controller.getPathY()][controller.getPathX()]=='5'){ //SE INCONTRA UNNODO
+            //Map.maze[controller.getPathY()][controller.getPathX()]=='2'||Map.maze[controller.getPathY()][controller.getPathX()]=='3'||Map.maze[controller.getPathY()][controller.getPathX()]=='4'||Map.maze[controller.getPathY()][controller.getPathX()]=='0'||Map.maze[controller.getPathY()][controller.getPathX()]=='7'||Map.maze[controller.getPathY()][controller.getPathX()]=='5'
+            if(nuovo&&!uscito){
+                exitGhost();
+            }
+            if(Map.maze[controller.getPathY()][controller.getPathX()]!='1'){ //SE INCONTRA UNNODO
                 //Se non sono mangiabile e riesco a vedere Pacman OPPURE se non sono mangiato
                 if(eated){
                     if(goToHome()) {
                         this.start=true;
                         this.ready=true;
-                        tX=0;
-                        tY=0;
-                        vel=250;
+                        controller.tX=0;
+                        controller.tY=0;
+                        controller.vel=250;
                         nuovo=true;
                         uscito=false;
                         eated=false;
@@ -224,6 +214,7 @@ public class Ne  implements Runnable {
             if (controlled) {
                 n = i[0];
                 for (; ; ) {
+                    controller.stop=true;
                     if (!this.start) {
                         try {
                             Thread.sleep(20);
@@ -231,22 +222,34 @@ public class Ne  implements Runnable {
                         }
                     } else {
                         //Do qualche secondo di vantaggio
+                        n = i[0];
                         try {
                             Thread.sleep(1500);
                         } catch (Exception e) {
 
                         }
                         if (Main.startGame) {
-
-
                             //Seguo le indicazioni di controller.changeDir
+                            controller.stop=false;
                             start = false;
                             ready = false;
                             for (; ; ) {
-                                if (Main.gOver || Main.stop) {
+                                if(eated&&Map.maze[controller.pathy][controller.pathx]=='7'){
+                                    //Rigenero
+                                    this.start=true;
+                                    this.ready=true;
+                                    controller.tX=0;
+                                    controller.tY=0;
+                                    controller.vel=250;
+                                    nuovo=true;
+                                    uscito=false;
+                                    eated=false;
+                                }
+                                if (Main.gOver) {
                                     //Quando muore pacman, i fantasmi spariscono fino alla sua rinascita
                                     n = i[12];
-                                    System.out.println(Main.gOver + "," + Main.stop);
+                                    //Ed azzerano la loro direzione
+                                    controller.changeDir='k';
                                     break;
                                 }
                                 switch (controller.changeDir) {
@@ -294,39 +297,73 @@ public class Ne  implements Runnable {
                             }
                             n = i[12];
                             FirstLaunch(bornx, borny, color);
-
                             this.start = false;
                             this.ready = true;
                         }
                     }
                 }
             }
-            else{
-
-                //Seguo le indicazioni di dir(COLORE)
+            else {
                 n = i[0];
-                start = false;
-                ready = false;
-                for (; ; ) {
-                    if (Main.gOver || Main.stop) {
-                        //Quando muore pacman, i fantasmi spariscono fino alla sua rinascita
-                        n = i[12];
-                        break;
-                    }
-                    corri(controller.changeDir,false);
-                    try{
-                        Thread.sleep(10);
-                    }catch (Exception e){
+                while(true){
+                    controller.stop=true;
+                    if (!this.start) {
+                        try {
+                            Thread.sleep(20);
+                        } catch (Exception e) {
+                        }
+                    } else {
+                        n = i[0];
+                        //Do qualche secondo di vantaggio
+                        try {
+                            Thread.sleep(1500);
+                        } catch (Exception e) {
 
+                        }
+                        if (Main.startGame) {
+                            controller.stop=false;
+                            start = false;
+                            ready = false;
+                            for (; ; ) {
+                                if(eated&&Map.maze[controller.pathy][controller.pathx]=='7'){
+                                    //Rigenero
+                                    this.start=true;
+                                    this.ready=true;
+                                    controller.tX=0;
+                                    controller.tY=0;
+                                    controller.vel=250;
+                                    nuovo=true;
+                                    uscito=false;
+                                    eated=false;
+                                }
+                                if (Main.gOver || Main.stop) {
+                                    //Quando muore pacman, i fantasmi spariscono fino alla sua rinascita
+                                    n = i[12];
+                                    break;
+                                }
+                                corri(controller.changeDir, false);
+                                try {
+                                    Thread.sleep(10);
+                                } catch (Exception e) {
+
+                                }
+                            }
+                            n = i[12];
+                            FirstLaunch(bornx, borny, color);
+
+                            this.start = false;
+                            this.ready = true;
+
+                        }
                     }
+                        }
+                    }
+
+
                 }
-                n = i[12];
-                FirstLaunch(bornx, borny, color);
+                    //Seguo le indicazioni di dir(COLORE)
 
-                this.start = false;
-                this.ready = true;
-            }
-        }
+
     }
 
 
@@ -561,6 +598,22 @@ public class Ne  implements Runnable {
             return true;
         corri(c,true);
         return false;
+    }
+
+    public void exitGhost(){
+        for(;uscito!=true;){corri(esci(),true);}
+        Map.maze[12][13]=Map.maze[12][14]='6'; // Muro valicabile solo da morto
+        nuovo=false;
+        //Scelgo una direzione a caso (sx o dx)
+        //chiamo cieco() per scegliere una direzione a caso che non sia su o giu
+        int d;
+        d=(int)(Math.random()*10);
+        d++;
+        if(d%2==0){
+            corri('a',true);
+        }else{
+            corri('d',true);
+        }
     }
 
 

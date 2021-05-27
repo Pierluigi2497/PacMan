@@ -148,6 +148,7 @@ public class Pg implements Runnable {
                 Restart = false;
                 Main.gOver = false;
                 Pac = pac[0];
+                System.out.println("Primo for");
                 for (; ; ) {
 
                     if (Main.gOver) {
@@ -157,7 +158,9 @@ public class Pg implements Runnable {
                                 Thread.sleep(75);
                             } catch (Exception e) {
                             }
+                            System.out.println("Ciclo");
                         }
+                        System.out.println("Fine Ciclo");
                         Pac = pac[9];
                         if (Main.Life == 0) {
                             Pulse.resetAll();
@@ -168,6 +171,7 @@ public class Pg implements Runnable {
                             }
                             Pulse.win = false;
                         }
+                        Main.gOver=false;
                         break;
                     }
                     if (Main.stop) {
@@ -210,6 +214,8 @@ public class Pg implements Runnable {
 
                     }
                 }
+                FirstLunch(6,9);
+                try{Thread.sleep(2000);}catch (Exception e){}
             }
         }
     }
@@ -231,6 +237,7 @@ public class Pg implements Runnable {
                     }
                     Pulse.win=false;
                 }
+                Main.gOver=false;
                 break;
             }
             if (Main.stop){

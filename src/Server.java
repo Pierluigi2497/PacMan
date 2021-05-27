@@ -61,9 +61,8 @@ public class Server implements Runnable{
                                            Main.ne[0].controller.tX = Integer.parseInt(path[3]);
                                            Main.ne[0].controller.tY = Integer.parseInt(path[4]);
                                            Main.ne[0].controller.stop = Boolean.parseBoolean(path[5]);
-                                           Main.ne[0].controller.vel = Integer.parseInt(path[6]);
+                                           //Main.ne[0].controller.vel = Integer.parseInt(path[6]);
                                            Main.ne[0].start = Boolean.parseBoolean(path[7]);
-                                           System.out.println("start: "+Main.ne[0].start);
                                            Main.ne[0].ready = Boolean.parseBoolean(path[8]);
 
                                        }
@@ -78,7 +77,7 @@ public class Server implements Runnable{
                                            Main.ne[1].controller.tX = Integer.parseInt(path[3]);
                                            Main.ne[1].controller.tY = Integer.parseInt(path[4]);
                                            Main.ne[1].controller.stop = Boolean.parseBoolean(path[5]);
-                                           Main.ne[1].controller.vel = Integer.parseInt(path[6]);
+                                           //Main.ne[1].controller.vel = Integer.parseInt(path[6]);
                                            Main.ne[1].start = Boolean.parseBoolean(path[7]);
                                            Main.ne[1].ready = Boolean.parseBoolean(path[8]);
                                        }
@@ -93,7 +92,7 @@ public class Server implements Runnable{
                                            Main.ne[2].controller.tX = Integer.parseInt(path[3]);
                                            Main.ne[2].controller.tY = Integer.parseInt(path[4]);
                                            Main.ne[2].controller.stop = Boolean.parseBoolean(path[5]);
-                                           Main.ne[2].controller.vel = Integer.parseInt(path[6]);
+                                           //Main.ne[2].controller.vel = Integer.parseInt(path[6]);
                                            Main.ne[2].start = Boolean.parseBoolean(path[7]);
                                            Main.ne[2].ready = Boolean.parseBoolean(path[8]);
                                        }
@@ -108,7 +107,7 @@ public class Server implements Runnable{
                                            Main.ne[3].controller.tX = Integer.parseInt(path[3]);
                                            Main.ne[3].controller.tY = Integer.parseInt(path[4]);
                                            Main.ne[3].controller.stop = Boolean.parseBoolean(path[5]);
-                                           Main.ne[3].controller.vel = Integer.parseInt(path[6]);
+                                           //Main.ne[3].controller.vel = Integer.parseInt(path[6]);
                                            Main.ne[3].start = Boolean.parseBoolean(path[7]);
                                            Main.ne[3].ready = Boolean.parseBoolean(path[8]);
 
@@ -130,12 +129,12 @@ public class Server implements Runnable{
                                        case '6': {
                                            String[] splitted = line.split(":");
                                            String[] path = splitted[1].split(",");
-                                           Main.gOver = Boolean.parseBoolean(path[0]);
+                                        //   Main.gOver = Boolean.parseBoolean(path[0]);
                                            Pg.Restart = Boolean.parseBoolean(path[1]);
                                            Main.startGame = Boolean.parseBoolean(path[2]);
-                                           Main.Life = Integer.parseInt(path[3]);
-                                           Main.pulse.win = Boolean.parseBoolean(path[4]);
-                                           Main.Level = Integer.parseInt(path[5]);
+                                       //    Main.Life = Integer.parseInt(path[3]);
+                                       //    Main.pulse.win = Boolean.parseBoolean(path[4]);
+                                       //    Main.Level = Integer.parseInt(path[5]);
                                        }break;
                                        case '7': {
                                            String[] splitted = line.split(":");

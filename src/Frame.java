@@ -403,7 +403,9 @@ public class Frame extends JPanel implements Runnable {
         for(int i=0;i<Main.Ngiocatori;i++) {
             if (Main.server.getID() == (i + 2)) {
                 //Imposto un ellisse di visione partendo dalla posizione del fantasmino - la grandezza in pixel del raggio di visione ed aggiungo metà porzione di quadrato di array grafico
-                g.setClip(new Ellipse2D.Double((Main.startx + (Main.dX * Main.ne[i].controller.pathx) + Main.ne[i].controller.tX)-((Main.range*Main.dX)/2)+(Main.dX/2),(Main.starty + (Main.dY * Main.ne[i].controller.pathy) + Main.ne[i].controller.tY)-((Main.range*Main.dX)/2)+(Main.dY/2),(Main.range*Main.dX),(Main.range*Main.dX)));
+                if(!Main.gOver) {
+                    g.setClip(new Ellipse2D.Double((Main.startx + (Main.dX * Main.ne[i].controller.pathx) + Main.ne[i].controller.tX) - ((Main.range * Main.dX) / 2) + (Main.dX / 2), (Main.starty + (Main.dY * Main.ne[i].controller.pathy) + Main.ne[i].controller.tY) - ((Main.range * Main.dX) / 2) + (Main.dY / 2), (Main.range * Main.dX), (Main.range * Main.dX)));
+                }
                 //g.fillOval((Main.startx + (Main.dX * Main.ne[i].controller.pathx) + Main.ne[i].tX)-150, (Main.starty + (Main.dY * Main.ne[i].controller.pathy) + Main.ne[i].tY)-150, 300, 300);
             }
         }
