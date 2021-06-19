@@ -10,24 +10,36 @@ public class Audio implements Runnable{
     private Clock clock=Clock.systemDefaultZone();
     static boolean eatedGhost=false;
     private double timerBeginning=0;//File lenght=4126 ms
-    File beginningFile= new File("res/beginning.wav");
+    File beginningFile= new File("res/game_start.wav");
     AudioInputStream beginning;
     static Clip beginningClip;
-    private double timerChomp=0;//File lenght=716 ms
-    File dotEatFile= new File("res/chomp.wav");
+
+    private double timerChomp=0;//File lenght=250 ~ ms
+    File dotEatFile= new File("res/munch.wav");
     AudioInputStream chomp;
-    Clip chompClip;
-    private double timerEat=0;//File lenght=573 ms
-    File ghostEatFile= new File("res/eatghost.wav");
+    static Clip chompClip;
+
+    private static double timerEat=0;//File lenght=573 ms
+    File ghostEatFile= new File("res/eat_ghost.wav");
     AudioInputStream ghost;
-    Clip ghostClip;
+    static Clip ghostClip;
+
     private double timerDeath=0;//File lenght=1534 ms
     File deathFile= new File("res/death.wav");
     AudioInputStream death;
-    Clip deathClip;
-    File sirenFile= new File("res/siren.wav");
+    static Clip deathClip;
+
+    File sirenFile= new File("res/siren_1.wav");
     AudioInputStream siren;
-    Clip sirenClip;
+    static Clip sirenClip;
+
+    File eatedFile= new File("res/power_pellet.wav");
+    AudioInputStream eated;
+    static Clip eatedClip;
+
+    File eatableFile= new File("res/retreating.wav");
+    AudioInputStream eatable;
+    static Clip eatableClip;
 
     //variabile tmp
     private double tmp=0;
@@ -38,15 +50,23 @@ public class Audio implements Runnable{
 
     public void run(){
         //Ho mangiato una qualunque pallina, avvio il suono
-        /*while(true) {
+        //Aspetto che il giocatore esca dal menu
+        while(Main.stateOfGame==0||Main.stateOfGame==3){
+            try{
+                Thread.sleep(10);
+            }catch (Exception e){}
+        }
+        while(true) {
             if(!Main.startGame){
                 timerBeginning= clock.millis();
                 beginningClip.start();
             }
-            *//*if(!beginningClip.isActive()&&!deathClip.isActive()){
+            if(!beginningClip.isActive()&&!deathClip.isActive()&&Main.startGame){
                 sirenClip.loop(Clip.LOOP_CONTINUOUSLY);
-            }*//*
-            if ((dots-Main.dots>1) && timerChomp == 0 && !stopDots) {
+            }else{
+                sirenClip.stop();
+            }
+            if ((dots-Main.dots>=1) && timerChomp == 0 && !stopDots) {
                 dots=Main.dots;
                 timerChomp = clock.millis();
                 chompClip.start();
@@ -65,7 +85,7 @@ public class Audio implements Runnable{
                 Thread.sleep(1);
             } catch (Exception e) {
             }
-        }*/
+        }
     }
 
     public Audio(){
@@ -113,6 +133,24 @@ public class Audio implements Runnable{
             sirenClip = (Clip) AudioSystem.getLine(info);
             sirenClip.open(siren);
         }catch (Exception e){System.out.println("Errore riproduzione");}
+
+        try{eatable= AudioSystem.getAudioInputStream(eatableFile);}
+        catch(Exception e){System.out.println("Errore apertura audio");}
+        format = eatable.getFormat();
+        info = new DataLine.Info(Clip.class, format);
+        try {
+            eatableClip = (Clip) AudioSystem.getLine(info);
+            eatableClip.open(eatable);
+        }catch (Exception e){System.out.println("Errore riproduzione");}
+
+        try{eated= AudioSystem.getAudioInputStream(eatedFile);}
+        catch(Exception e){System.out.println("Errore apertura audio");}
+        format = eated.getFormat();
+        info = new DataLine.Info(Clip.class, format);
+        try {
+            eatedClip = (Clip) AudioSystem.getLine(info);
+            eatedClip.open(eated);
+        }catch (Exception e){System.out.println("Errore riproduzione");}
     }
 
     private void checkAudio(){
@@ -124,9 +162,11 @@ public class Audio implements Runnable{
             }
         }
         if(timerChomp!=0){
-            if(clock.millis()-timerChomp>716){
+            if(clock.millis()-timerChomp>250){
                 chompClip.stop();
                 chompClip.setMicrosecondPosition(0);
+/*                chompClip1.stop();
+                chompClip1.setMicrosecondPosition(0);*/
                 timerChomp=0;
                 tmp= clock.millis();
             }
@@ -145,6 +185,60 @@ public class Audio implements Runnable{
                 timerEat=0;
             }
         }
+    }
+
+    public static void playEated(){
+        if(!eatedClip.isActive()){
+            eatedClip.loop(Clip.LOOP_CONTINUOUSLY);
+        }
+    }
+
+    public static void stopPlayEated(){
+        boolean stop=true;
+        for(int i=0;i<Main.Ngiocatori;i++){
+            if(Main.ne[i].eated){
+                stop=false;
+                break;
+            }
+        }
+        if(stop){
+            eatedClip.stop();
+            eatedClip.setMicrosecondPosition(0);
+        }
+    }
+
+    public static void playEatable(){
+        if(!eatableClip.isActive()){
+            eatableClip.loop(Clip.LOOP_CONTINUOUSLY);
+        }
+    }
+
+    public static void stopPlayEatable(){
+        eatableClip.stop();
+        eatableClip.setMicrosecondPosition(0);
+    }
+
+    public static double getEatTime(){
+        return timerEat;
+    }
+
+    public static void stopAllSounds(){
+                deathClip.stop();
+
+
+                chompClip.stop();
+
+                beginningClip.stop();
+
+
+                ghostClip.stop();
+
+                eatedClip.stop();
+
+                eatableClip.stop();
+
+                sirenClip.stop();
+
     }
 
 

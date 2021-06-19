@@ -5,8 +5,10 @@ import javax.swing.*;
 import java.awt.*;
 import java.io.File;
 import java.time.Clock;
+import java.util.EventListener;
 
 public class Main{
+    static int stateOfGame=0;//0-Menu 1-SinglePlayer 2-Multiplayer 3-Options
     static Frame f=new Frame();
     static Audio audio=new Audio();
     static Thread audioThread=new Thread(audio);
@@ -40,18 +42,13 @@ public class Main{
     static BufferedImage[] le=new BufferedImage[4];
     static int score;
     static Boolean stop=false;
-    static int Ngiocatori=1;
+    static int Ngiocatori=4;
     static int range=12;
     static boolean startGame=false;
     static Server server;
     static Thread serverThread;
     static boolean multiplayer=false;
-
-    public static char dirPac;
-    public static char dirRed;
-    public static char dirPink;
-    public static char dirBlue;
-    public static char dirYellow;
+    static MouseInput ms;
 
     //Variabile statica per sincronizzare i nemici ed il Pacman
 
@@ -84,61 +81,67 @@ public class Main{
         startAllCharacter();
         setGraphics();
 
-        f.f.addKeyListener(new KeyAdapter() {
+        f.f.addKeyListener(
+                new KeyAdapter() {
+
             public void keyTyped(KeyEvent e) {
+
                 //Scelgo in base all'id a chi modificare la direzione, le altre direzioni verranno modificate dal server
                 switch (server.getID()){
                     case 2: {ne[0].controller.changeDir=e.getKeyChar();
-                        System.out.println("Pressed Pink"+ ne[0].controller.changeDir);
-/*                        try {
-                            server.sendDir("2:" + ne[0].controller.changeDir);
-                        }catch (Exception j){*//*j.printStackTrace();*//*}*/
                     }break;
                     case 3: {ne[1].controller.changeDir=e.getKeyChar();
-                        System.out.println("Pressed Red"+ ne[1].controller.changeDir);
-/*                        try {
-                            server.sendDir("3:" + ne[1].controller.changeDir);
-                        }catch (Exception j){j.printStackTrace();}*/
                     }break;
                     case 4: {ne[2].controller.changeDir=e.getKeyChar();
-                        System.out.println("Pressed Blue"+ ne[2].controller.changeDir);
-/*                        try {
-                            server.sendDir("4:" + ne[2].controller.changeDir);
-                        }catch (Exception j){j.printStackTrace();}*/
                     }break;
                     case 5: {ne[3].controller.changeDir=e.getKeyChar();
-                        System.out.println("Pressed Yellow"+ ne[3].controller.changeDir);
-/*                        try {
-                            server.sendDir("5:" + ne[3].controller.changeDir);
-                        }catch (Exception j){j.printStackTrace();}*/
                     }break;
                     default: {pg.controller.changeDir=e.getKeyChar();
-                        System.out.println("Pressed Pac"+ pg.controller.changeDir);
-/*                        try {
-                            server.sendDir("1:" + pg.controller.changeDir+","+pg.controller.pathx+","+pg.controller.pathy);
-                        }catch (Exception j){j.printStackTrace();}*/
                     }
                 }
             }
         });
+        ms = new MouseInput();
+        f.f.addMouseListener(ms);
+        f.f.addMouseMotionListener(ms);
+        f.f.addWindowListener(new WindowListener() {
+            @Override
+            public void windowOpened(WindowEvent e) {
+
+            }
+
+            @Override
+            public void windowClosing(WindowEvent e) {
+                Audio.stopAllSounds();
+            }
+
+            @Override
+            public void windowClosed(WindowEvent e) {
+                Audio.stopAllSounds();
+            }
+
+            @Override
+            public void windowIconified(WindowEvent e) {
+
+            }
+
+            @Override
+            public void windowDeiconified(WindowEvent e) {
+
+            }
+
+            @Override
+            public void windowActivated(WindowEvent e) {
+
+            }
+
+            @Override
+            public void windowDeactivated(WindowEvent e) {
+
+            }
+        });
         audioThread.start();
 
-    }
-
-    public char getDirPac(){
-        return dirPac;
-    }
-    public char getDirRed(){
-        return dirRed;
-    }
-    public char getDirPink(){
-        return dirPink;
-    }
-    public char getDirBlue(){
-        return dirBlue;
-    }
-    public char getDirYellow(){
-        return dirYellow;
     }
 
     public static void setAllCharacter(){
@@ -208,11 +211,11 @@ public class Main{
     public static void setGraphics(){
         pulse=new Pulse();
         pul=new Thread(pulse);
-            f.f.setSize(644,742);
+        //f.f.setSize(644,742);
 
         f.f.setResizable(false);
-        //f.f.setExtendedState(JFrame.MAXIMIZED_BOTH);
-        f.f.setUndecorated(false);
+        f.f.setExtendedState(JFrame.MAXIMIZED_BOTH);
+        f.f.setUndecorated(true);
         f.f.setVisible(true);
 
         //Dimensioni in pixel di un quadrato

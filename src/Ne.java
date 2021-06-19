@@ -134,6 +134,7 @@ public class Ne  implements Runnable {
                 //Se non sono mangiabile e riesco a vedere Pacman OPPURE se non sono mangiato
                 if(eated){
                     if(goToHome()) {
+                        //Sono arrivato a casa
                         this.start=true;
                         this.ready=true;
                         controller.tX=0;
@@ -184,10 +185,16 @@ public class Ne  implements Runnable {
     }
 
     public void run(){
+        if(Main.stateOfGame==0||Main.stateOfGame==3){
+            try{
+                Thread.sleep(10);
+            }catch (Exception e){}
+        }
         //Se devo utilizzare l'intelligenza artificiale per muovermi
         if(activated) {
             for (; ; ) {
                 uscito = false;
+                Audio.stopPlayEated();
                 nuovo = true;
                 Map.maze[12][13] = Map.maze[12][14] = '3';
                 //Quando Pg vuole, e tutti sono pronti, tutti i nemici si rigenerano
@@ -214,6 +221,7 @@ public class Ne  implements Runnable {
             if (controlled) {
                 n = i[0];
                 for (; ; ) {
+                    Audio.stopPlayEated();
                     controller.stop=true;
                     if (!this.start) {
                         try {
@@ -306,6 +314,7 @@ public class Ne  implements Runnable {
             else {
                 n = i[0];
                 while(true){
+                    Audio.stopPlayEated();
                     controller.stop=true;
                     if (!this.start) {
                         try {
@@ -493,7 +502,8 @@ public class Ne  implements Runnable {
         //             V
         if(l==4)
             System.out.println("PROBLEMA NE RIGA 310");
-        if(l==3){//Se sono su un incrocio 4 way
+        if(l==3){
+            //Se sono su un incrocio 4 way
             //Scelgo una direzione a caso tra le 3
             int d=(int)(Math.random()*10);
             d=d%3;
@@ -513,9 +523,10 @@ public class Ne  implements Runnable {
             }
         }
         //Se ho 2 direzioni, scelgo a caso tra queste due
-        if(l==2){//Scelgo una direzione tra le 2
+        if(l==2){
+            //Scelgo una direzione tra le 2
             //Scelgo una direzione a caso tra le 3
-            int d=(int)Math.random();
+            int d=(int)(Math.random()*10);
             d=d%2;
             switch (d){
                 case 0:{
@@ -587,7 +598,10 @@ public class Ne  implements Runnable {
     //DA SISTEMARE
     //Prima di sistemare questo metodo, probabilmente bisogna sistemare il metodo Follow
     public void Fuga(){
-        corri(cieco(),true);
+        try{corri(cieco(),true);}
+        catch (Exception e){
+            corri(ldir,true);
+        }
     }
 
     public boolean goToHome(){
@@ -613,6 +627,14 @@ public class Ne  implements Runnable {
             corri('a',true);
         }else{
             corri('d',true);
+        }
+    }
+
+    public void stopThread(double g){
+        try{
+            Thread.sleep(3000);
+        }catch (Exception e){
+            e.printStackTrace();
         }
     }
 

@@ -15,6 +15,12 @@ public class Server implements Runnable{
 
     }
     public void run(){
+        //Aspetto che il giocatore esca dal menu
+        while(Main.stateOfGame==0){
+            try{
+                Thread.sleep(10);
+            }catch (Exception e){}
+        }
         try {
             Socket s = new Socket("127.0.0.1", 4000);
             writerChannel = new BufferedWriter(new OutputStreamWriter(s.getOutputStream()));

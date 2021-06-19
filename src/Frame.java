@@ -1,12 +1,16 @@
-import javax.swing.JFrame;
-import javax.swing.JPanel;
+import javax.swing.*;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
+import java.awt.event.MouseEvent;
+import java.awt.event.MouseListener;
 import java.awt.geom.Ellipse2D;
 import java.awt.image.BufferedImage;
 import java.awt.*;
 import java.io.File;
+import java.io.IOException;
 import java.time.Clock;
 
-public class Frame extends JPanel implements Runnable {
+public class Frame extends JPanel implements Runnable, ActionListener {
     public JFrame f=new JFrame();
     private BufferedImage dot;
     static BufferedImage Dot;
@@ -22,9 +26,27 @@ public class Frame extends JPanel implements Runnable {
     Clock clock=Clock.systemDefaultZone();
     private int i;//Controllo per score
     private int l;//Controllo per invertire score
-    private Font font=new Font("res/PressStart2P-Regular.ttf",Font.BOLD,20);
+    private Font font;
+    private Font font1;
+    int xPos,xDimButton;
+    int yPos,yDimButton;
+    int fontSizeButton[] = new int[4];
+    Color colorButton[] = new Color[4];
+    static Timer timer;
+    BufferedImage images[] = new BufferedImage[6];
+
 
     public Frame(){
+        timer = new Timer(20,this);
+        fontSizeButton[0]=fontSizeButton[1]=fontSizeButton[2]=fontSizeButton[3]=15;
+        colorButton[0]=colorButton[1]=colorButton[2]=colorButton[3]= Color.WHITE;
+        try{
+            GraphicsEnvironment ge = GraphicsEnvironment.getLocalGraphicsEnvironment();
+            font1 = Font.createFont(Font.TRUETYPE_FONT,new File("res/PacfontGood-yYye.ttf")).deriveFont(50f);
+            ge.registerFont(Font.createFont(Font.TRUETYPE_FONT,new File("res/PacfontGood-yYye.ttf")));
+        }catch (Exception e){
+
+        }
         setBackground(Color.BLACK);
         f.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         repaint();
@@ -46,6 +68,20 @@ public class Frame extends JPanel implements Runnable {
         timeForGhosts=clock.millis();
         timeForPacman=clock.millis();
         timeForWhiteGhosts=clock.millis();
+
+        //Inizializzazione menu
+        //Inizializzo le posizioni dei pulsanti
+        xPos = Main.startx+(Main.dX*9);
+        yPos = Main.starty+(Main.dY*10);
+        xDimButton = Main.trueWidth/5;
+        yDimButton = Main.trueHeight/20;
+        //Inizializzo le immagini per il background del menu
+        //images[0]= Main.img.getSubimage(0,0,0,0);//Scritta Pacman
+        images[1]= Main.img.getSubimage(20,17,13,13);//Pacman
+        images[2]= Main.img.getSubimage(36,65,14,14);//Fantasma-0
+        images[3]= Main.img.getSubimage(36,81,14,14);//Fantasma-1
+        images[4]= Main.img.getSubimage(36,97,14,14);//Fantasma-2
+        images[5]= Main.img.getSubimage(36,113,14,14);//Fantasma-3
         for(;;){
             repaint();
             try{
@@ -60,19 +96,25 @@ public class Frame extends JPanel implements Runnable {
 
     public void paintComponent(Graphics g) {
         super.paintComponent(g);
+        font = new Font("Dialog",Font.BOLD,15);
         g.setColor(Color.WHITE);
-        drawClip(g);
-        drawMap(g);
-        //Per disegnare al centro(di ogno quadrato corrispettivo), devo aggiundere la metà di dX e dY ad ogni print
-        drawDots(g);
-        drawGhosts(g);
-        drawPacman(g);
-        drawBlack(g);
-        drawScore(g);
-        drawGameOver(g);
-        drawLife(g);
-        drawLevel(g);
-        drawReady(g);
+        //drawMatrix(g);
+        if(Main.stateOfGame!=0) {
+            drawClip(g);
+            drawMap(g);
+            //Per disegnare al centro(di ogno quadrato corrispettivo), devo aggiundere la metà di dX e dY ad ogni print
+            drawDots(g);
+            drawGhosts(g);
+            drawPacman(g);
+            drawBlack(g);
+            drawScore(g);
+            drawGameOver(g);
+            drawLife(g);
+            drawLevel(g);
+            drawReady(g);
+        }else{
+            drawMenu(g);
+        }
     }
 
     public void drawMap(Graphics g){
@@ -355,7 +397,6 @@ public class Frame extends JPanel implements Runnable {
     }
 
     public void drawLevel(Graphics g){
-        //Work only with 9 LEVEL
         j[0]=Main.Level%10;
         j[1]=Main.Level%100;
         j[1]=j[1]/10;
@@ -411,4 +452,172 @@ public class Frame extends JPanel implements Runnable {
         }
     }
 
+    public void drawMenu(Graphics g){
+        g.setFont(font1);
+        g.setColor(Color.YELLOW);
+        g.drawString("pac man",Main.startx+(Main.dX*7),Main.starty+(Main.dY*3));
+        g.setColor(Color.WHITE);
+
+        g.drawOval(Main.startx+(Main.dX/2)-5+(Main.dX*8), Main.starty+(Main.dY/2)-5+(Main.dY*6), 10, 10);
+        g.fillOval(Main.startx+(Main.dX/2)-5+(Main.dX*8), Main.starty+(Main.dY/2)-5+(Main.dY*6), 10, 10);
+        g.drawImage(images[1],Main.startx+(Main.dX*9)+(Main.dX/3),Main.starty+(Main.dY*6),Main.dX,Main.dY,null);
+        g.drawImage(images[2],Main.startx+(Main.dX*10)+(Main.dX/3)*2,Main.starty+(Main.dY*6),Main.dX,Main.dY,null);
+        g.drawImage(images[3],Main.startx+(Main.dX*11)+(Main.dX/3)*3,Main.starty+(Main.dY*6),Main.dX,Main.dY,null);
+        g.drawImage(images[4],Main.startx+(Main.dX*12)+(Main.dX/3)*4,Main.starty+(Main.dY*6),Main.dX,Main.dY,null);
+        g.drawImage(images[5],Main.startx+(Main.dX*13)+(Main.dX/3)*5,Main.starty+(Main.dY*6),Main.dX,Main.dY,null);
+
+        font = font.deriveFont((float)fontSizeButton[0]);
+        g.setColor(colorButton[0]);
+        g.setFont(font);
+        g.drawRect(xPos,yPos,xDimButton,yDimButton);
+        g.drawString("Single-Player",xPos+(xDimButton/5),yPos+font.getSize()+yDimButton/5);
+
+        font = font.deriveFont((float)fontSizeButton[1]);
+        g.setColor(colorButton[1]);
+        g.setFont(font);
+        g.drawRect(xPos,yPos+(yDimButton*1)+(yDimButton/3)*1,xDimButton,yDimButton);
+        g.drawString("Multi-Player",xPos+(xDimButton/5),yPos+font.getSize()+yDimButton/5+(yDimButton*1)+(yDimButton/3)*1);
+
+        font = font.deriveFont((float)fontSizeButton[2]);
+        g.setColor(colorButton[2]);
+        g.setFont(font);
+        g.drawRect(xPos,yPos+(yDimButton*2)+(yDimButton/3)*2,xDimButton,yDimButton);
+        g.drawString("Options",xPos+(xDimButton/5),yPos+font.getSize()+yDimButton/5+(yDimButton*2)+(yDimButton/3)*2);
+
+        font = font.deriveFont((float)fontSizeButton[3]);
+        g.setColor(colorButton[3]);
+        g.setFont(font);
+        g.drawRect(xPos,yPos+(yDimButton*3)+(yDimButton/3)*3,xDimButton,yDimButton);
+        g.drawString("Exit",xPos+(xDimButton/5),yPos+font.getSize()+yDimButton/5+(yDimButton*3)+(yDimButton/3)*3);
+    }
+
+    public void drawMatrix(Graphics g){
+        for(int i=0;i<Map.y;i++){
+            for(int l=0;l<Map.x;l++){
+                g.drawRect((Main.startx)+l*Main.dY,(Main.starty)+i*Main.dX,Main.dX,Main.dY);
+            }
+        }
+    }
+
+    @Override
+    public void actionPerformed(ActionEvent e) {
+       switch(e.getActionCommand()){
+           case "Single":{
+               if(fontSizeButton[0]<20){
+                   fontSizeButton[0]++;
+               }else{
+                   timer.stop();
+               }
+               colorButton[0]=Color.YELLOW;
+
+               if(fontSizeButton[1]>15){
+                   fontSizeButton[1]--;
+               }
+               colorButton[1]=Color.WHITE;
+
+               if(fontSizeButton[2]>15){
+                   fontSizeButton[2]--;
+               }
+               colorButton[2]=Color.WHITE;
+
+               if(fontSizeButton[3]>15){
+                   fontSizeButton[3]--;
+               }
+               colorButton[3]=Color.WHITE;
+           }break;
+           case "Multi":{
+               if(fontSizeButton[0]>15){
+                   fontSizeButton[0]--;
+               }
+               colorButton[0]=Color.WHITE;
+
+               if(fontSizeButton[1]<20){
+                   fontSizeButton[1]++;
+               }else{
+                   timer.stop();
+               }
+               colorButton[1]=Color.YELLOW;
+
+               if(fontSizeButton[2]>15){
+                   fontSizeButton[2]--;
+               }
+               colorButton[2]=Color.WHITE;
+
+               if(fontSizeButton[3]>15){
+                   fontSizeButton[3]--;
+               }
+               colorButton[3]=Color.WHITE;
+           }break;
+           case "Options":{
+               if(fontSizeButton[0]>15){
+                   fontSizeButton[0]--;
+               }
+               colorButton[0]=Color.WHITE;
+
+               if(fontSizeButton[1]>15){
+                   fontSizeButton[1]--;
+               }
+               colorButton[1]=Color.WHITE;
+
+               if(fontSizeButton[2]<20){
+                   fontSizeButton[2]++;
+               }else{
+                   timer.stop();
+               }
+               colorButton[2]=Color.YELLOW;
+
+               if(fontSizeButton[3]>15){
+                   fontSizeButton[3]--;
+               }
+               colorButton[3]=Color.WHITE;
+           }break;
+           case "Exit":{
+               if(fontSizeButton[0]>15){
+                   fontSizeButton[0]--;
+               }
+               colorButton[0]=Color.WHITE;
+
+               if(fontSizeButton[1]>15){
+                   fontSizeButton[1]--;
+               }
+               colorButton[1]=Color.WHITE;
+
+               if(fontSizeButton[2]>15){
+                   fontSizeButton[2]--;
+               }
+               colorButton[2]=Color.WHITE;
+
+               if(fontSizeButton[3]<20){
+                   fontSizeButton[3]++;
+               }else{
+                   timer.stop();
+               }
+               colorButton[3]=Color.YELLOW;
+           }break;
+           default: {
+               //Se non tocco nessuno, ritrasformo il colore e la dimensione dei pulsanti in quella originale
+               if(fontSizeButton[0]>15){
+                   fontSizeButton[0]--;
+               }
+               colorButton[0]=Color.WHITE;
+
+
+               if(fontSizeButton[1]>15){
+                   fontSizeButton[1]--;
+               }
+               colorButton[1]=Color.WHITE;
+
+               if(fontSizeButton[2]>15){
+                   fontSizeButton[2]--;
+               }
+               colorButton[2]=Color.WHITE;
+
+               if(fontSizeButton[3]>15){
+                   fontSizeButton[3]--;
+               }
+               colorButton[3]=Color.WHITE;
+               timer.stop();
+           }
+       }
+    }
 }

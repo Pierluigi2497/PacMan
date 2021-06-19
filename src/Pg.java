@@ -67,6 +67,12 @@ public class Pg implements Runnable {
     }
 
     public void run(){
+        //Aspetto che il giocatore esca dal menu
+        while(Main.stateOfGame==0||Main.stateOfGame==3){
+            try{
+                Thread.sleep(10);
+            }catch (Exception e){}
+        }
         if(controlled) {
             for (; ; ) {
                 //Imposto direzione=k (killed)
@@ -222,6 +228,9 @@ public class Pg implements Runnable {
 
     public void Life(){
         while(true){
+            if(Audio.eatedClip.isActive()){
+                //Se il suono da mangiato
+            }
             if(Main.gOver){
                 for(int i=0;i<13;i++){
                     Pac=death[i];
@@ -291,6 +300,14 @@ public class Pg implements Runnable {
         FirstLunch(6,9);
         try{Thread.sleep(2000);}catch (Exception e){}
         return ;
+    }
+
+    public void stopThread(double g){
+        try{
+            Thread.sleep(3000);
+        }catch (Exception e){
+            e.printStackTrace();
+        }
     }
 
 }
