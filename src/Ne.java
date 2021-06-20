@@ -242,6 +242,10 @@ public class Ne  implements Runnable {
                             start = false;
                             ready = false;
                             for (; ; ) {
+                                //Controllo quando sono uscito così da chiudere l'uscita
+                                if(controller.pathy==11&&(controller.pathx==13)||(controller.pathx==14))
+                                    Map.maze[12][13]=Map.maze[12][14]='6';
+
                                 if(eated&&Map.maze[controller.pathy][controller.pathx]=='7'){
                                     //Rigenero
                                     this.start=true;
@@ -276,7 +280,7 @@ public class Ne  implements Runnable {
                                     }
                                     break;
                                     case 's': {
-                                        controller.MoveDw(true);
+                                        controller.MoveDw(true,eated);
                                         ldir = 's';
                                         if (controller.Direction != 's')
                                             controller.changeDir = controller.Direction;
@@ -334,6 +338,11 @@ public class Ne  implements Runnable {
                             start = false;
                             ready = false;
                             for (; ; ) {
+                                //Controllo quando sono uscito così da chiudere l'uscita
+                                if(controller.pathy==12&&(controller.pathx==13)||(controller.pathx==14))
+                                    Map.maze[12][13]=Map.maze[12][14]='6';
+
+
                                 if(eated&&Map.maze[controller.pathy][controller.pathx]=='7'){
                                     //Rigenero
                                     this.start=true;
@@ -576,7 +585,7 @@ public class Ne  implements Runnable {
                 if(controller.Direction!='d')
                     controller.changeDir=controller.Direction;}break;
             case 's':{
-                controller.MoveDw(toSend);
+                controller.MoveDw(toSend,eated);
                 ldir='s';
                 if(controller.Direction!='s')
                     controller.changeDir=controller.Direction;}break;

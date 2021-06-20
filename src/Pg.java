@@ -193,7 +193,7 @@ public class Pg implements Runnable {
                         break;
                         case 's': {
                             controller.Direction = 's';
-                            controller.MoveDw(false);
+                            controller.MoveDw(false,false);
 
                             if (controller.Direction != 's')
                                 controller.changeDir = controller.Direction;
@@ -265,7 +265,7 @@ public class Pg implements Runnable {
                     if(controller.Direction!='d')
                         controller.changeDir=controller.Direction;}break;
                 case 's':{
-                    controller.MoveDw(true);
+                    controller.MoveDw(true,false);
                     ldir='s';
                     if(controller.Direction!='s')
                         controller.changeDir=controller.Direction;}break;

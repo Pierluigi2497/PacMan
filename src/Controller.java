@@ -203,9 +203,10 @@ public class Controller {
 
 
 
+
     }
 
-    public Boolean ControlloDir(char dir){
+    public Boolean  ControlloDir(char dir){
         switch(dir){
             case 'w': {
                 if(Map.maze[pathy-1][pathx]!='1'&&!Main.gOver){
@@ -221,7 +222,11 @@ public class Controller {
                 }
             }break;
             case 's': {
-                if(Map.maze[pathy+1][pathx]!='1'&&!Main.gOver){
+                //Un fantasma può scendere nella sua home solo quando è mangiato
+                if(Map.maze[pathy+1][pathx]=='6'&&!Main.gOver&&(Main.server.getID()>1&&Main.server.getID()<6)&&Main.ne[Main.server.getID()].eated==true){
+                    return true;
+                }
+                if(!(Map.maze[pathy+1][pathx]=='1'||Map.maze[pathy+1][pathx]=='6')&&!Main.gOver){
                     return true;
                 }
             }break;
@@ -237,8 +242,11 @@ public class Controller {
         return false;
     }
 
-    public void MoveDw(boolean toSend){
-        if(Map.maze[pathy+1][pathx]!='1'&&!Main.gOver){
+    public void MoveDw(boolean toSend,boolean eated){
+        //Inserisco questo codice per evitare che i fantasmi o il pacman entrino nello spawn dei fantasmi dopo che questultimi sono usciti
+
+        if((!((Map.maze[pathy+1][pathx]=='6')||(Map.maze[pathy+1][pathx]=='1'))&&!Main.gOver)||(Map.maze[pathy+1][pathx]=='6'&&eated)){
+            System.out.println("Pathx : "+pathx+" Pathy: "+pathy);
             Direction='s';
             stop=false;
             //Invio informazioni al server
@@ -257,7 +265,8 @@ public class Controller {
                 }
             }
             Trans('s',toSend);
-        }else{
+        }
+        else{
             //Ed invio l'informazione al server
             if(stop==false) {
                 stop=true;
