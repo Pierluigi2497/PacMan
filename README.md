@@ -7,6 +7,7 @@
 - [X] Make Options menu
 - [X] Fix Pacman bug, respawn location after death
 - [X] Fix Pacman bug, when reaspawn he move untill gamestart
-- [ ] Add pause game when ghost is eated
-- [ ] Fix Eatable situation, blue time is 0 now & not playing ghosts must be invisible
+- [X] Add pause game when ghost is eated
+- [X] Fix Eatable situation, blue time is 0 now
+- [X] Fix ghost not playing must be invisible
 
