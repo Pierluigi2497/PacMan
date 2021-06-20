@@ -68,10 +68,10 @@ public class Frame extends JPanel implements Runnable, ActionListener {
 
         //Inizializzazione menu
         //Inizializzo le posizioni dei pulsanti
-        xPos = Main.startx+(Main.dX*9);
+        xPos = Main.startx+(Main.dX*7)+(Main.dX/2);
         yPos = Main.starty+(Main.dY*10);
-        xDimButton = Main.trueWidth/5;
-        yDimButton = Main.trueHeight/20;
+        xDimButton = Main.trueWidth/3;
+        yDimButton = Main.trueHeight/18;
         //Inizializzo le immagini per il background del menu
         //images[0]= Main.img.getSubimage(0,0,0,0);//Scritta Pacman
         images[1]= Main.img.getSubimage(20,17,13,13);//Pacman
@@ -115,6 +115,10 @@ public class Frame extends JPanel implements Runnable, ActionListener {
             else{
                if(Main.stateOfGame==4){
                    drawLobby(g);
+               }else{
+                   if(Main.stateOfGame==3){
+                       drawOptions(g);
+                   }
                }
             }
 
@@ -154,7 +158,7 @@ public class Frame extends JPanel implements Runnable, ActionListener {
     }
 
     public void drawGhosts(Graphics g){
-        for(int i=0;i<4;i++) {
+        for(int i=0;i<Main.Ngiocatori;i++) {
             changeNeSprite(i);
             g.drawImage(Main.ne[i].n, Main.startx + (Main.dX * Main.ne[i].controller.pathx) + Main.ne[i].controller.getTX(), Main.starty + (Main.dY * Main.ne[i].controller.pathy) + Main.ne[i].controller.getTY(), Main.dX, Main.dY, null);
         }
@@ -457,11 +461,13 @@ public class Frame extends JPanel implements Runnable, ActionListener {
     }
 
     public void drawMenu(Graphics g){
+        //Title
         g.setFont(font1);
         g.setColor(Color.YELLOW);
         g.drawString("pac man",Main.startx+(Main.dX*7),Main.starty+(Main.dY*3));
         g.setColor(Color.WHITE);
 
+        //Pictures
         g.drawOval(Main.startx+(Main.dX/2)-5+(Main.dX*8), Main.starty+(Main.dY/2)-5+(Main.dY*6), 10, 10);
         g.fillOval(Main.startx+(Main.dX/2)-5+(Main.dX*8), Main.starty+(Main.dY/2)-5+(Main.dY*6), 10, 10);
         g.drawImage(images[1],Main.startx+(Main.dX*9)+(Main.dX/3),Main.starty+(Main.dY*6),Main.dX,Main.dY,null);
@@ -470,29 +476,30 @@ public class Frame extends JPanel implements Runnable, ActionListener {
         g.drawImage(images[4],Main.startx+(Main.dX*12)+(Main.dX/3)*4,Main.starty+(Main.dY*6),Main.dX,Main.dY,null);
         g.drawImage(images[5],Main.startx+(Main.dX*13)+(Main.dX/3)*5,Main.starty+(Main.dY*6),Main.dX,Main.dY,null);
 
+        //Buttons
         font = font.deriveFont((float)fontSizeButton[0]);
         g.setColor(colorButton[0]);
         g.setFont(font);
         g.drawRect(xPos,yPos,xDimButton,yDimButton);
-        g.drawString("Single-Player",xPos+(xDimButton/5),yPos+font.getSize()+yDimButton/5);
+        g.drawString("Single-Player",xPos+(xDimButton/8),yPos+font.getSize()+yDimButton/5);
 
         font = font.deriveFont((float)fontSizeButton[1]);
         g.setColor(colorButton[1]);
         g.setFont(font);
         g.drawRect(xPos,yPos+(yDimButton*1)+(yDimButton/3)*1,xDimButton,yDimButton);
-        g.drawString("Multi-Player",xPos+(xDimButton/5),yPos+font.getSize()+yDimButton/5+(yDimButton*1)+(yDimButton/3)*1);
+        g.drawString("Multi-Player",xPos+(xDimButton/8),yPos+font.getSize()+yDimButton/5+(yDimButton*1)+(yDimButton/3)*1);
 
         font = font.deriveFont((float)fontSizeButton[2]);
         g.setColor(colorButton[2]);
         g.setFont(font);
         g.drawRect(xPos,yPos+(yDimButton*2)+(yDimButton/3)*2,xDimButton,yDimButton);
-        g.drawString("Options",xPos+(xDimButton/5),yPos+font.getSize()+yDimButton/5+(yDimButton*2)+(yDimButton/3)*2);
+        g.drawString("Options",xPos+(xDimButton/8),yPos+font.getSize()+yDimButton/5+(yDimButton*2)+(yDimButton/3)*2);
 
         font = font.deriveFont((float)fontSizeButton[3]);
         g.setColor(colorButton[3]);
         g.setFont(font);
         g.drawRect(xPos,yPos+(yDimButton*3)+(yDimButton/3)*3,xDimButton,yDimButton);
-        g.drawString("Exit",xPos+(xDimButton/5),yPos+font.getSize()+yDimButton/5+(yDimButton*3)+(yDimButton/3)*3);
+        g.drawString("Exit",xPos+(xDimButton/8),yPos+font.getSize()+yDimButton/5+(yDimButton*3)+(yDimButton/3)*3);
     }
 
     public void drawMatrix(Graphics g){
@@ -503,11 +510,13 @@ public class Frame extends JPanel implements Runnable, ActionListener {
         }
     }
 
+    //Method for menu animation
     @Override
     public void actionPerformed(ActionEvent e) {
        switch(e.getActionCommand()){
+           case "Difficulty":
            case "Single":{
-               if(fontSizeButton[0]<20){
+               if(fontSizeButton[0]<18){
                    fontSizeButton[0]++;
                }else{
                    timer.stop();
@@ -529,13 +538,14 @@ public class Frame extends JPanel implements Runnable, ActionListener {
                }
                colorButton[3]=Color.WHITE;
            }break;
+           case "Audio":
            case "Multi":{
                if(fontSizeButton[0]>15){
                    fontSizeButton[0]--;
                }
                colorButton[0]=Color.WHITE;
 
-               if(fontSizeButton[1]<20){
+               if(fontSizeButton[1]<18){
                    fontSizeButton[1]++;
                }else{
                    timer.stop();
@@ -563,7 +573,7 @@ public class Frame extends JPanel implements Runnable, ActionListener {
                }
                colorButton[1]=Color.WHITE;
 
-               if(fontSizeButton[2]<20){
+               if(fontSizeButton[2]<18){
                    fontSizeButton[2]++;
                }else{
                    timer.stop();
@@ -575,6 +585,7 @@ public class Frame extends JPanel implements Runnable, ActionListener {
                }
                colorButton[3]=Color.WHITE;
            }break;
+           case "Back":
            case "Exit":{
                if(fontSizeButton[0]>15){
                    fontSizeButton[0]--;
@@ -591,7 +602,7 @@ public class Frame extends JPanel implements Runnable, ActionListener {
                }
                colorButton[2]=Color.WHITE;
 
-               if(fontSizeButton[3]<20){
+               if(fontSizeButton[3]<18){
                    fontSizeButton[3]++;
                }else{
                    timer.stop();
@@ -654,5 +665,32 @@ public class Frame extends JPanel implements Runnable, ActionListener {
                 g.drawImage(images[i + 1], Main.startx + (Main.dX * (9 + i)) + (Main.dX / 3) * (i + 1), Main.starty + (Main.dY * 6), Main.dX, Main.dY, null);
             }
         }catch (Exception e){}
+    }
+
+    public void drawOptions(Graphics g){
+        font = font.deriveFont((float)15);
+        g.setColor(Color.WHITE);
+        g.setFont(font);
+
+        //Buttons
+        font = font.deriveFont((float)fontSizeButton[0]);
+        g.setColor(colorButton[0]);
+        g.setFont(font);
+        g.drawRect(xPos,yPos,xDimButton,yDimButton);
+        g.drawString("Difficulty : " + Main.difficulty,xPos+(xDimButton/8),yPos+font.getSize()+yDimButton/5);
+
+        font = font.deriveFont((float)fontSizeButton[1]);
+        g.setColor(colorButton[1]);
+        g.setFont(font);
+        g.drawRect(xPos,yPos+(yDimButton*1)+(yDimButton/3)*1,xDimButton,yDimButton);
+        g.drawString("Audio : " + Main.volume,xPos+(xDimButton/8),yPos+font.getSize()+yDimButton/5+(yDimButton*1)+(yDimButton/3)*1);
+
+        font = font.deriveFont((float)fontSizeButton[3]);
+        g.setColor(colorButton[3]);
+        g.setFont(font);
+        g.drawRect(xPos,yPos+(yDimButton*3)+(yDimButton/3)*3,xDimButton,yDimButton);
+        g.drawString("Back",xPos+(xDimButton/8),yPos+font.getSize()+yDimButton/5+(yDimButton*3)+(yDimButton/3)*3);
+
+
     }
 }

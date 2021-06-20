@@ -45,7 +45,8 @@ public class Pulse implements Runnable{
         //Se mangia la palla grossa lui può mangiare i fantasmi e la palla diventa uno spazio vuoto 0
         if(Map.maze[Main.pg.controller.pathy][Main.pg.controller.pathx]=='5'){
             Main.Eat=1;Map.maze[Main.pg.controller.pathy][Main.pg.controller.pathx]='0';Main.score=Main.score+50;Main.dots--;
-            Audio.playEatable();
+            if(Main.audioThread.isAlive())
+                Audio.playEatable();
             //Quando mangio la palla grossa, resetto ldir così i fantasmi si possono girare indietro
             //Imposto una velocità più alta(più alto il valore, più lenti sono i fantasmi)
             for(int i=0;i<Main.Ngiocatori;i++){
@@ -64,14 +65,17 @@ public class Pulse implements Runnable{
                     {
                         //Setto una variabile che possono vedere tutti i nemici
                         //in questo modo possono tornare a casa mangiati e uscirne interi
-                        Audio.playEated();
+                        if(Main.audioThread.isAlive())
+                            Audio.playEated();
                         Main.ne[i].eated=true;
+                        Main.pause=true;
                         Main.ne[i].controller.vel=135;
                         Main.score+=100;
                         Audio.eatedGhost=true;
                     }
                     else {
-                        Audio.stopPlayEated();
+                        if(Main.audioThread.isAlive())
+                            Audio.playEated();
                         Main.gOver = true;
                     }
                 }}
@@ -88,20 +92,23 @@ public class Pulse implements Runnable{
                 eatableMillis=clock.millis();
                 situation=1;
             }
+            if((clock.millis()-eatableMillis)<timeOfEateable){
+                situation=1;
+                return;
+            }
             if((clock.millis()-eatableMillis)<(timeOfEateable+4000)){
                 situation=2;
-                //Se non sono passati ancora 6 secondi ma ne sono passati solo 4, i fantasmi devono lampeggiare
-            }else{
-                situation=0;
-                Main.Eat=0;
-                eatableMillis=0;
-                Audio.stopPlayEatable();
-                //Reimposto tutte le velocità dei fantasmini a quella originale
-                for(int i=0;i<Main.Ngiocatori;i++){
-                    //Se il tempo è scaduto e non sono stato mangiato, reimposto la velocità
-                    if(!Main.ne[i].eated) {
-                        Main.ne[i].controller.vel = 250;
-                    }
+                return;
+            }
+            situation=0;
+            Main.Eat=0;
+            eatableMillis=0;
+            Audio.stopPlayEatable();
+            //Reimposto tutte le velocità dei fantasmini a quella originale
+            for(int i=0;i<Main.Ngiocatori;i++){
+                //Se il tempo è scaduto e non sono stato mangiato, reimposto la velocità
+                if(!Main.ne[i].eated) {
+                    Main.ne[i].controller.vel = 250;
                 }
             }
         }

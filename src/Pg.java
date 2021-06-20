@@ -1,5 +1,4 @@
 import java.awt.image.BufferedImage;
-import java.io.IOException;
 
 public class Pg implements Runnable {
     //public int controller.pathx,controller.pathy;
@@ -67,12 +66,6 @@ public class Pg implements Runnable {
     }
 
     public void run(){
-        //Aspetto che il giocatore esca dal menu
-        while(Main.stateOfGame==0||Main.stateOfGame==3){
-            try{
-                Thread.sleep(10);
-            }catch (Exception e){}
-        }
         if(controlled) {
             for (; ; ) {
                 //Imposto direzione=k (killed)
@@ -154,8 +147,10 @@ public class Pg implements Runnable {
                 Restart = false;
                 Main.gOver = false;
                 Pac = pac[0];
-                System.out.println("Primo for");
                 for (; ; ) {
+                    if(Main.pause){
+                        pauseUntillAudio();
+                    }
 
                     if (Main.gOver) {
                         for (int i = 0; i < 13; i++) {
@@ -164,9 +159,7 @@ public class Pg implements Runnable {
                                 Thread.sleep(75);
                             } catch (Exception e) {
                             }
-                            System.out.println("Ciclo");
                         }
-                        System.out.println("Fine Ciclo");
                         Pac = pac[9];
                         if (Main.Life == 0) {
                             Pulse.resetAll();
@@ -228,8 +221,8 @@ public class Pg implements Runnable {
 
     public void Life(){
         while(true){
-            if(Audio.eatedClip.isActive()){
-                //Se il suono da mangiato
+            if(Main.pause){
+                pauseUntillAudio();
             }
             if(Main.gOver){
                 for(int i=0;i<13;i++){
@@ -237,6 +230,7 @@ public class Pg implements Runnable {
                     try{Thread.sleep(75);}catch(Exception e){}
                 }
                 Pac=pac[9];
+                controller.stop=true;
                 if(Main.Life==0){
                     Pulse.resetAll();
                 }else {
@@ -297,7 +291,7 @@ public class Pg implements Runnable {
         //Quando finisci il ciclo vitale, richiama life chiudendo l'attuale
         //TEMPORANEAMENTE ASPETTO 2 SECONDI PERCHE SI REAVII LA PARTITA
         //DOVRO METTERE UN MENU!!
-        FirstLunch(6,9);
+        FirstLunch(6,10);
         try{Thread.sleep(2000);}catch (Exception e){}
         return ;
     }
@@ -310,4 +304,17 @@ public class Pg implements Runnable {
         }
     }
 
+    public void pauseUntillAudio(){
+        while(true){
+            if(!Audio.ghostClip.isActive()){
+                Main.pause=false;
+                break;
+            }
+            try{
+                Thread.sleep(20);
+            }catch (Exception e){
+                e.printStackTrace();
+            }
+        }
+    }
 }

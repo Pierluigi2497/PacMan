@@ -32,6 +32,9 @@ public class Controller {
                             Direction=changeDir;
                             while(tY!=0){
                                 tY++;
+                                if(Main.pause){
+                                    pauseUntillAudio();
+                                }
                                 //Se muoio, termino l'animazione
                                 if(Main.gOver){
                                     return ;
@@ -45,6 +48,9 @@ public class Controller {
                             }
                             return ;
                         }}
+                    if(Main.pause){
+                        pauseUntillAudio();
+                    }
                     //Se muoio, termino l'animazione
                     if(Main.gOver){
                         return ;
@@ -67,6 +73,9 @@ public class Controller {
                             while(tY!=0){
                                 //aSprite('w');
                                 tY--;
+                                if(Main.pause){
+                                    pauseUntillAudio();
+                                }
                                 //Se muoio, termino l'animazione
                                 if(Main.gOver){
                                     return ;
@@ -80,6 +89,9 @@ public class Controller {
                             }
                             return ;
                         }
+                    }
+                    if(Main.pause){
+                        pauseUntillAudio();
                     }
                     if(Main.gOver){
                         return ;
@@ -105,6 +117,9 @@ public class Controller {
                             Direction=changeDir;
                             while (tX != 0) {
                                 tX++;
+                                if(Main.pause){
+                                    pauseUntillAudio();
+                                }
                                 //Se muoio, termino l'animazione
                                 if(Main.gOver){
                                     return ;
@@ -121,6 +136,9 @@ public class Controller {
                             }
                             return;
                         }
+                    }
+                    if(Main.pause){
+                        pauseUntillAudio();
                     }
                     if(Main.gOver){
                         return ;
@@ -148,6 +166,9 @@ public class Controller {
                             Direction=changeDir;
                             while(tX!=0){
                                 tX--;
+                                if(Main.pause){
+                                    pauseUntillAudio();
+                                }
                                 //Se muoio, termino l'animazione
                                 if(Main.gOver){
                                     return ;
@@ -163,6 +184,9 @@ public class Controller {
                             }
                             return;
                         }}
+                    if(Main.pause){
+                        pauseUntillAudio();
+                    }
                     if(Main.gOver){
                         return ;
                     }
@@ -428,5 +452,19 @@ public class Controller {
                 pathy+","+
                 tX+","+
                 tY);}catch(Exception e){}
+    }
+
+    public void pauseUntillAudio(){
+        while(true){
+            if(!Audio.ghostClip.isActive()){
+                Main.pause=false;
+                break;
+            }
+            try{
+                Thread.sleep(20);
+            }catch (Exception e){
+                e.printStackTrace();
+            }
+        }
     }
 }

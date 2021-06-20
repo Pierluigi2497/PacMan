@@ -4,9 +4,6 @@ import javax.imageio.*;
 import javax.swing.*;
 import java.awt.*;
 import java.io.File;
-import java.net.SocketException;
-import java.time.Clock;
-import java.util.EventListener;
 
 public class Main{
     static int stateOfGame=0;//0-Menu 1-SinglePlayer 2-Multiplayer 3-Options 4-Lobby
@@ -43,188 +40,44 @@ public class Main{
     static BufferedImage[] le=new BufferedImage[4];
     static int score;
     static Boolean stop=false;
-    static int Ngiocatori=4;
+    static int Ngiocatori=1;
     static int range=12;
     static boolean startGame=false;
     static ServerClient server;
     static Thread serverThread;
-    static boolean multiplayer=false;
     static MouseInput ms;
     static ServerAccept serverAccept;
     static Thread SA;
+    static Boolean pause=false; //Utilizzata per bloccare tutto il gioco quando qualcuno viene mangiato
+
+    //Options
+    static String volume = "true";
+    static String difficulty = "medium";
 
     //Variabile statica per sincronizzare i nemici ed il Pacman
 
 
     public static void main(String[] args) {
         new Map();
-        /*try {
-            server=new ServerClient();
-            serverThread=new Thread(server);
-            serverThread.start();
-            //Aspetto 3 secondi, per dare il tempo al client di connettersi al server
-            //Thread.sleep(3000);
-            if(server.getStatus()) {
-                multiplayer = true;
-                //Do un ruolo al giocatore
-                System.out.println(server.getNumberOfPlayer());
-            }else {
-                System.out.println("Sono Pacman singleplayer");
-            }
-        }catch (Exception e){System.out.println("Errroe creazione Thread");}*/
-
-        try{img=ImageIO.read(new File("res/sheet.png"));
-            map=ImageIO.read(new File("res/map.png"));
-            Scritte=ImageIO.read(new File("res/scritte.png"));
-            }
-        catch(Exception e){e.printStackTrace();System.out.println(System.getProperty("user.dir"));System.exit(-1);}
-
         setImages();
         setGraphics();
-
-
-        f.f.addKeyListener(
-                new KeyAdapter() {
-
-            public void keyTyped(KeyEvent e) {
-
-                //Scelgo in base all'id a chi modificare la direzione, le altre direzioni verranno modificate dal server
-                switch (server.getID()){
-                    case 2: {ne[0].controller.changeDir=e.getKeyChar();
-                    }break;
-                    case 3: {ne[1].controller.changeDir=e.getKeyChar();
-                    }break;
-                    case 4: {ne[2].controller.changeDir=e.getKeyChar();
-                    }break;
-                    case 5: {ne[3].controller.changeDir=e.getKeyChar();
-                    }break;
-                    default: {pg.controller.changeDir=e.getKeyChar();
-                    }
-                }
-            }
-        });
-        ms = new MouseInput();
-        f.f.addMouseListener(ms);
-        f.f.addMouseMotionListener(ms);
-        f.f.addWindowListener(new WindowListener() {
-            @Override
-            public void windowOpened(WindowEvent e) {
-
-            }
-
-            @Override
-            public void windowClosing(WindowEvent e) {
-                Audio.stopAllSounds();
-            }
-
-            @Override
-            public void windowClosed(WindowEvent e) {
-                Audio.stopAllSounds();
-            }
-
-            @Override
-            public void windowIconified(WindowEvent e) {
-
-            }
-
-            @Override
-            public void windowDeiconified(WindowEvent e) {
-
-            }
-
-            @Override
-            public void windowActivated(WindowEvent e) {
-
-            }
-
-            @Override
-            public void windowDeactivated(WindowEvent e) {
-
-            }
-        });
-        //Aspetto finchè statusOfGame non cambia
-        while(true){
-            if(stateOfGame!=0){
-                if(stateOfGame==1){
-                    //Inizializzo la classe ServerClient in maniera da far capire a tutte le altre classi
-                    //l'id del giocatore(in questo caso 99)
-                    try{
-                        server = new ServerClient(false);
-                    }catch (Exception e){
-
-                    }
-                    break;
-                }
-                if(stateOfGame==2){
-                    stateOfGame=4;
-                    try{
-                        server = new ServerClient(true);
-                        //Se sono riuscito a collegarmi
-                        System.out.println("Connessione eseguita ad un server remoto");
-                        //Ora avvio il Thread
-                        serverThread = new Thread(server);
-                        serverThread.start();
-                        //Aspetto finchè tutti e 5 i giocatori non sono connessi
-                        Frame.timer1.start();
-                        Frame.timer1.setActionCommand("Waiting");
-                        while(server.getNumberOfPlayer()!=5){
-                            try{
-                                Thread.sleep(500);
-                            }catch (Exception e){
-
-                            }
-                        }
-                        Frame.timer1.stop();
-                        stateOfGame=2;
-                        break;
-                    }
-                    catch (Exception j) {
-                        //Se non sono riuscito a collegarmi, creo il server e mi connetto
-                        serverAccept = new ServerAccept();
-                        SA = new Thread(serverAccept);
-                        SA.start();
-                        //Aspetto un paio di secondi così da avere il server in ascolto
-                        try{
-                            //Ora mi collego al mio stesso server
-                            server = new ServerClient(true);
-                            //Se sono riuscito a collegarmi, faccio partire il Thread
-                            serverThread = new Thread(server);
-                            serverThread.start();
-                            Frame.timer1.start();
-                            Frame.timer1.setActionCommand("Waiting");
-                            while(server.getNumberOfPlayer()!=5){
-                                try{
-                                    Thread.sleep(500);
-                                }catch (Exception e){
-
-                                }
-                            }
-                            Frame.timer1.stop();
-                            stateOfGame=2;
-                            break;
-                        }catch (Exception p){
-                            System.out.println("Errore connessione server mio");
-                            break;
-                        }
-                    }
-                }
-                if(stateOfGame==3){
-                    //Non so cosa cazzo fare
-                }
-
-            }
-            try{
-                Thread.sleep(50);
-            }catch (Exception e){}
-        }
+        setListener();
+        waitingMenu();
         setAllCharacter();
         startAllCharacter();
-        audioThread.start();
+        if(Boolean.parseBoolean(volume))
+            audioThread.start();
 
 
     }
 
     public static void setAllCharacter(){
+        //Imposto il raggio che i fantasmini hanno per vedermi, in base alla difficoltà impostata dal giocatore host
+        switch(difficulty){
+            case "easy": {range=12;}break;
+            case "medium": {range=16;}break;
+            case "hard": {range=18;}break;
+        }
         switch(server.getID()){
             case 2:{
                 pg = new Pg(6, 10, false);
@@ -331,6 +184,12 @@ public class Main{
     }
 
     public static void setImages(){
+        try{img=ImageIO.read(new File("res/sheet.png"));
+            map=ImageIO.read(new File("res/map.png"));
+            Scritte=ImageIO.read(new File("res/scritte.png"));
+        }
+        catch(Exception e){e.printStackTrace();System.out.println(System.getProperty("user.dir"));System.exit(-1);}
+
         s[0]=Scritte.getSubimage(0,0,11,10);
         s[1]=Scritte.getSubimage(13,0,9,10);
         s[2]=Scritte.getSubimage(24,0,11,10);
@@ -353,4 +212,142 @@ public class Main{
         return server.getRunning();
     }
 
+    public static void setListener(){
+        f.f.addKeyListener(new KeyAdapter() {
+
+            public void keyTyped(KeyEvent e) {
+                //Scelgo in base all'id a chi modificare la direzione, le altre direzioni verranno modificate dal server
+                switch (server.getID()){
+                    case 2: {ne[0].controller.changeDir=e.getKeyChar();
+                    }break;
+                    case 3: {ne[1].controller.changeDir=e.getKeyChar();
+                    }break;
+                    case 4: {ne[2].controller.changeDir=e.getKeyChar();
+                    }break;
+                    case 5: {ne[3].controller.changeDir=e.getKeyChar();
+                    }break;
+                    default: {pg.controller.changeDir=e.getKeyChar();
+                    }
+                }
+            }
+        });
+        ms = new MouseInput();
+        f.f.addMouseListener(ms);
+        f.f.addMouseMotionListener(ms);
+        f.f.addWindowListener(new WindowListener() {
+            @Override
+            public void windowOpened(WindowEvent e) {
+
+            }
+
+            @Override
+            public void windowClosing(WindowEvent e) {
+                Audio.stopAllSounds();
+            }
+
+            @Override
+            public void windowClosed(WindowEvent e) {
+                Audio.stopAllSounds();
+            }
+
+            @Override
+            public void windowIconified(WindowEvent e) {
+
+            }
+
+            @Override
+            public void windowDeiconified(WindowEvent e) {
+
+            }
+
+            @Override
+            public void windowActivated(WindowEvent e) {
+
+            }
+
+            @Override
+            public void windowDeactivated(WindowEvent e) {
+
+            }
+        });
+    }
+
+    public static void waitingMenu(){
+        //Aspetto finchè statusOfGame non cambia
+        while(true){
+            if(stateOfGame!=0){
+                if(stateOfGame==1){
+                    //Inizializzo la classe ServerClient in maniera da far capire a tutte le altre classi
+                    //l'id del giocatore(in questo caso 99)
+                    try{
+                        server = new ServerClient(false);
+                    }catch (Exception e){
+                        e.printStackTrace();
+                    }
+                    break;
+                }
+                if(stateOfGame==2){
+                    stateOfGame=4;
+                    try{
+                        server = new ServerClient(true);
+                        //Se sono riuscito a collegarmi
+                        System.out.println("Connessione eseguita ad un server remoto");
+                        //Ora avvio il Thread
+                        serverThread = new Thread(server);
+                        serverThread.start();
+                        //Aspetto finchè tutti e 5 i giocatori non sono connessi
+                        Frame.timer1.start();
+                        Frame.timer1.setActionCommand("Waiting");
+                        while(server.getNumberOfPlayer()!=Ngiocatori+1){
+                            try{
+                                Thread.sleep(500);
+                            }catch (Exception e){
+                                e.printStackTrace();
+                            }
+                        }
+                        Frame.timer1.stop();
+                        stateOfGame=2;
+                        break;
+                    }
+                    catch (Exception j) {
+                        //Se non sono riuscito a collegarmi, creo il server e mi connetto
+                        serverAccept = new ServerAccept();
+                        SA = new Thread(serverAccept);
+                        SA.start();
+                        //Aspetto un paio di secondi così da avere il server in ascolto
+                        try{
+                            //Ora mi collego al mio stesso server
+                            server = new ServerClient(true);
+                            //Se sono riuscito a collegarmi, faccio partire il Thread
+                            serverThread = new Thread(server);
+                            serverThread.start();
+                            Frame.timer1.start();
+                            Frame.timer1.setActionCommand("Waiting");
+                            while(server.getNumberOfPlayer()!=Ngiocatori+1){
+                                try{
+                                    Thread.sleep(500);
+                                }catch (Exception e){
+                                    e.printStackTrace();
+                                }
+                            }
+                            Frame.timer1.stop();
+                            stateOfGame=2;
+                            break;
+                        }catch (Exception p){
+                            System.out.println("Errore connessione server mio");
+                            break;
+                        }
+                    }
+                }
+                if(stateOfGame==3){
+                    //Non so cosa cazzo fare
+                }
+            }
+            try{
+                Thread.sleep(50);
+            }catch (Exception e){
+                e.printStackTrace();
+            }
+        }
+    }
 }

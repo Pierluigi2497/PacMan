@@ -13,9 +13,7 @@ public class ServerClient implements Runnable{
 
     public ServerClient(Boolean multi) throws Exception{
         if(multi){
-            System.out.println("Perimna");
             s = new Socket("127.0.0.1", 4000);
-            System.out.println("Dopo");
         }else{
             //Non faccio niente perchè mi servivano solo le variabili inizializzate
         }
@@ -44,6 +42,7 @@ public class ServerClient implements Runnable{
                                //5-Yellow
                                //6-Informazioni generali di gioco
                                //7-Informazioni per i fantasmini(da smistare)
+                               //8-Opzioni
                                if (line.charAt(0) != String.valueOf(id).charAt(0)) {
                                    switch (line.charAt(0)) {
                                        case 'P': {
@@ -155,6 +154,16 @@ public class ServerClient implements Runnable{
                                            Main.ne[l].controller.vel = Integer.parseInt(path[6]);
                                            Main.ne[l].start = Boolean.parseBoolean(path[7]);
                                            Main.ne[l].ready = Boolean.parseBoolean(path[8]);
+                                       }
+                                       case '8':{
+                                           String[] splitted = line.split(":");
+                                           //Imposto la difficoltà per il Pacman (Se il Pacman host ha scelto hard, io fantasma avrò una difficoltà easy ma il mio Pacman continuerà ad averla hard)
+                                           //(Se il pacman vuole giocare in modalità difficile, i fantasmini giocheranno in modalità facile)
+                                           switch (splitted[1]){
+                                               case "easy" :{Main.difficulty="easy";}break;
+                                               case "medium" :{Main.difficulty="medium";}break;
+                                               case "hard" :{Main.difficulty="hard";}break;
+                                           }
                                        }
                                    }
                                }

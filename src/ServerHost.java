@@ -17,6 +17,9 @@ public class ServerHost implements Runnable{
                 try {
                     writerChannel.write(new Date().toString() + "\n\r");
                     writerChannel.flush();
+                    //Invio al nuovo arrivato, le opzioni di partita (al momento esiste solo la difficoltà)
+                    writerChannel.write("8:"+Main.difficulty + "\n\r");
+                    writerChannel.flush();
                     ServerAccept.updatePlayers();
                     while ((line = readerChannel.readLine()) != null) {
                         //Quando ricevo qualcosa, lo invio a tutti i client
