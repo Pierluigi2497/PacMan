@@ -7,3 +7,4 @@
 - [ ] Make Options menu
 - [ ] Fix Pacman bug, respawn location after death
 - [ ] Fix Pacman bug, when reaspawn he move untill gamestart
+- [ ] Add pause game when ghost is eated
