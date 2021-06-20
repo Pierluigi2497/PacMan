@@ -4,11 +4,12 @@ import javax.imageio.*;
 import javax.swing.*;
 import java.awt.*;
 import java.io.File;
+import java.net.SocketException;
 import java.time.Clock;
 import java.util.EventListener;
 
 public class Main{
-    static int stateOfGame=0;//0-Menu 1-SinglePlayer 2-Multiplayer 3-Options
+    static int stateOfGame=0;//0-Menu 1-SinglePlayer 2-Multiplayer 3-Options 4-Lobby
     static Frame f=new Frame();
     static Audio audio=new Audio();
     static Thread audioThread=new Thread(audio);
@@ -45,18 +46,20 @@ public class Main{
     static int Ngiocatori=4;
     static int range=12;
     static boolean startGame=false;
-    static Server server;
+    static ServerClient server;
     static Thread serverThread;
     static boolean multiplayer=false;
     static MouseInput ms;
+    static ServerAccept serverAccept;
+    static Thread SA;
 
     //Variabile statica per sincronizzare i nemici ed il Pacman
 
 
     public static void main(String[] args) {
         new Map();
-        try {
-            server=new Server();
+        /*try {
+            server=new ServerClient();
             serverThread=new Thread(server);
             serverThread.start();
             //Aspetto 3 secondi, per dare il tempo al client di connettersi al server
@@ -68,7 +71,7 @@ public class Main{
             }else {
                 System.out.println("Sono Pacman singleplayer");
             }
-        }catch (Exception e){System.out.println("Errroe creazione Thread");}
+        }catch (Exception e){System.out.println("Errroe creazione Thread");}*/
 
         try{img=ImageIO.read(new File("res/sheet.png"));
             map=ImageIO.read(new File("res/map.png"));
@@ -77,9 +80,8 @@ public class Main{
         catch(Exception e){e.printStackTrace();System.out.println(System.getProperty("user.dir"));System.exit(-1);}
 
         setImages();
-        setAllCharacter();
-        startAllCharacter();
         setGraphics();
+
 
         f.f.addKeyListener(
                 new KeyAdapter() {
@@ -140,7 +142,85 @@ public class Main{
 
             }
         });
+        //Aspetto finchè statusOfGame non cambia
+        while(true){
+            if(stateOfGame!=0){
+                if(stateOfGame==1){
+                    //Inizializzo la classe ServerClient in maniera da far capire a tutte le altre classi
+                    //l'id del giocatore(in questo caso 99)
+                    try{
+                        server = new ServerClient(false);
+                    }catch (Exception e){
+
+                    }
+                    break;
+                }
+                if(stateOfGame==2){
+                    stateOfGame=4;
+                    try{
+                        server = new ServerClient(true);
+                        //Se sono riuscito a collegarmi
+                        System.out.println("Connessione eseguita ad un server remoto");
+                        //Ora avvio il Thread
+                        serverThread = new Thread(server);
+                        serverThread.start();
+                        //Aspetto finchè tutti e 5 i giocatori non sono connessi
+                        Frame.timer1.start();
+                        Frame.timer1.setActionCommand("Waiting");
+                        while(server.getNumberOfPlayer()!=5){
+                            try{
+                                Thread.sleep(500);
+                            }catch (Exception e){
+
+                            }
+                        }
+                        Frame.timer1.stop();
+                        stateOfGame=2;
+                        break;
+                    }
+                    catch (Exception j) {
+                        //Se non sono riuscito a collegarmi, creo il server e mi connetto
+                        serverAccept = new ServerAccept();
+                        SA = new Thread(serverAccept);
+                        SA.start();
+                        //Aspetto un paio di secondi così da avere il server in ascolto
+                        try{
+                            //Ora mi collego al mio stesso server
+                            server = new ServerClient(true);
+                            //Se sono riuscito a collegarmi, faccio partire il Thread
+                            serverThread = new Thread(server);
+                            serverThread.start();
+                            Frame.timer1.start();
+                            Frame.timer1.setActionCommand("Waiting");
+                            while(server.getNumberOfPlayer()!=5){
+                                try{
+                                    Thread.sleep(500);
+                                }catch (Exception e){
+
+                                }
+                            }
+                            Frame.timer1.stop();
+                            stateOfGame=2;
+                            break;
+                        }catch (Exception p){
+                            System.out.println("Errore connessione server mio");
+                            break;
+                        }
+                    }
+                }
+                if(stateOfGame==3){
+                    //Non so cosa cazzo fare
+                }
+
+            }
+            try{
+                Thread.sleep(50);
+            }catch (Exception e){}
+        }
+        setAllCharacter();
+        startAllCharacter();
         audioThread.start();
+
 
     }
 
@@ -199,6 +279,10 @@ public class Main{
         n[1]=new Thread(ne[1]);
         n[2]=new Thread(ne[2]);
         n[3]=new Thread(ne[3]);
+
+        pulse=new Pulse();
+        pul=new Thread(pulse);
+        pul.start();
     }
 
     public static void startAllCharacter(){
@@ -209,8 +293,6 @@ public class Main{
     }
 
     public static void setGraphics(){
-        pulse=new Pulse();
-        pul=new Thread(pulse);
         //f.f.setSize(644,742);
 
         f.f.setResizable(false);
@@ -246,7 +328,6 @@ public class Main{
                 stop=true;
             }
         });
-        pul.start();
     }
 
     public static void setImages(){
@@ -266,6 +347,10 @@ public class Main{
         readyImg=Main.Scritte.getSubimage(0,11,100,18);
 
         LifeImage=img.getSubimage(20,1,13,13);
+    }
+
+    public static boolean checkHost(){
+        return server.getRunning();
     }
 
 }

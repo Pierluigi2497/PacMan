@@ -3,13 +3,12 @@ import java.time.Clock;
 public class Pulse implements Runnable{
     public Clock clock=Clock.systemDefaultZone();
     public long dotMillis;
-    public Boolean c=true;
     public long eatableMillis;
     public long almostEatableMillis;
     //Time of eateble as blue, the white is (timeofEateable+4000)
     public int timeOfEateable=6000;
     public long pulseWhite;
-    private int i[]=new int[4];
+    private int[] i=new int[4];
     public static boolean win=false;
     static int situation=0; //0-Nothing  1-Blue  2-Pulsing White-Blue
 
@@ -19,11 +18,6 @@ public class Pulse implements Runnable{
 
     public void run(){
         //Aspetto che il giocatore esca dal menu
-        while(Main.stateOfGame==0){
-            try{
-                Thread.sleep(10);
-            }catch (Exception e){}
-        }
         dotMillis=clock.millis();
         almostEatableMillis=0;
         pulseWhite=0;
@@ -31,14 +25,13 @@ public class Pulse implements Runnable{
         countDots();
         for(;;){
             pacControl();
-            dotPulse();
             sureEatable();
             checkScore();
             checkDots();
             try {
                 Thread.sleep(1);
             }catch (Exception e){
-
+                e.printStackTrace();
             }
             //Quando chiudo finestra, esco dal Thread
             //Non funziona
@@ -85,18 +78,6 @@ public class Pulse implements Runnable{
     }
 
 
-    public void dotPulse(){
-        if((clock.millis()-this.dotMillis)>=375){
-            if(c){
-                c=!c;
-                Frame.Dot=Main.img.getSubimage(0,0,1,1);}
-            else{c=!c;
-                Frame.Dot=Main.img.getSubimage(152,31,16,16);}
-            dotMillis=clock.millis();
-        }
-
-
-    }
 
 
     public void sureEatable(){
@@ -107,12 +88,7 @@ public class Pulse implements Runnable{
                 eatableMillis=clock.millis();
                 situation=1;
             }
-            if((clock.millis()-eatableMillis)<timeOfEateable){
-                //Se non sono passati ancora 4 secondi, i fantasmi devono essere blu
-                //La classe Ne gestisce il colore
-                //Faccio gestire la morte del fantasma alla sua classe così da non appesantire Pulse
-
-            }else if((clock.millis()-eatableMillis)<(timeOfEateable+4000)){
+            if((clock.millis()-eatableMillis)<(timeOfEateable+4000)){
                 situation=2;
                 //Se non sono passati ancora 6 secondi ma ne sono passati solo 4, i fantasmi devono lampeggiare
             }else{

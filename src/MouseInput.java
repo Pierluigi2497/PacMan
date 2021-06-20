@@ -1,4 +1,3 @@
-import javax.swing.Timer;
 import java.awt.event.*;
 
 public class MouseInput implements MouseListener, MouseMotionListener {
@@ -6,13 +5,12 @@ public class MouseInput implements MouseListener, MouseMotionListener {
     int buttonsMaxArea = (buttonsMinArea)+Main.f.xDimButton;
     int singleMinArea = Main.f.yPos;
     int singleMaxArea = (singleMinArea)+Main.f.yDimButton;
-    int multiMinArea = Main.f.yPos+(Main.f.yDimButton*1)+(Main.f.yDimButton/3)*1;
+    int multiMinArea = Main.f.yPos+(Main.f.yDimButton)+(Main.f.yDimButton/3);
     int multiMaxArea = (multiMinArea)+Main.f.yDimButton;
     int optionsMinArea = Main.f.yPos+(Main.f.yDimButton*2)+(Main.f.yDimButton/3)*2;
     int optionsMaxArea = (optionsMinArea)+Main.f.yDimButton;
     int exitMinArea = Main.f.yPos+(Main.f.yDimButton*3)+(Main.f.yDimButton/3)*3;
     int exitMaxArea = (exitMinArea)+Main.f.yDimButton;
-    Boolean Hover = false;
     public MouseInput(){
 
     }

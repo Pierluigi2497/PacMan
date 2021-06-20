@@ -4,25 +4,24 @@ import java.io.InputStreamReader;
 import java.io.OutputStreamWriter;
 import java.net.*;
 import java.util.Date;
-public class Server implements Runnable{
+public class ServerClient implements Runnable{
     public BufferedWriter writerChannel;
-    public boolean running=false;
+    private boolean running=false;
     public int numberOfPlayer=0;
     private int id=99; //1-Pacman 2-Pink 3-Red 4-Blue 5-Yellow 99-PacmanSinglePlayer
+    Socket s;
 
-    public Server() throws Exception{
-
-
+    public ServerClient(Boolean multi) throws Exception{
+        if(multi){
+            System.out.println("Perimna");
+            s = new Socket("127.0.0.1", 4000);
+            System.out.println("Dopo");
+        }else{
+            //Non faccio niente perchè mi servivano solo le variabili inizializzate
+        }
     }
     public void run(){
-        //Aspetto che il giocatore esca dal menu
-        while(Main.stateOfGame==0){
-            try{
-                Thread.sleep(10);
-            }catch (Exception e){}
-        }
         try {
-            Socket s = new Socket("127.0.0.1", 4000);
             writerChannel = new BufferedWriter(new OutputStreamWriter(s.getOutputStream()));
             BufferedReader readerChannel = new BufferedReader(new InputStreamReader(s.getInputStream()));
             String line;
@@ -167,7 +166,7 @@ public class Server implements Runnable{
                     }
 
             }
-        }catch(Exception e){running=false;
+        }catch(Exception e){
             e.printStackTrace();
             running=false;
             System.out.println("Errore in qualcosa in server");}
@@ -189,5 +188,9 @@ public class Server implements Runnable{
 
     public int getID(){
         return id;
+    }
+
+    public boolean getRunning(){
+        return running;
     }
 }

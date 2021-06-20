@@ -1,19 +1,14 @@
 import javax.swing.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
-import java.awt.event.MouseEvent;
-import java.awt.event.MouseListener;
 import java.awt.geom.Ellipse2D;
 import java.awt.image.BufferedImage;
 import java.awt.*;
 import java.io.File;
-import java.io.IOException;
 import java.time.Clock;
 
 public class Frame extends JPanel implements Runnable, ActionListener {
     public JFrame f=new JFrame();
-    private BufferedImage dot;
-    static BufferedImage Dot;
     private double timeForDots;
     private double timeForGhosts;
     private double timeForPacman;
@@ -22,7 +17,7 @@ public class Frame extends JPanel implements Runnable, ActionListener {
     private double speedPacman=100;
     private double speedWhiteGhosts=300;
     private double speedDots=350;
-    private int j[]=new int[4];
+    private int[] j=new int[4];
     Clock clock=Clock.systemDefaultZone();
     private int i;//Controllo per score
     private int l;//Controllo per invertire score
@@ -30,14 +25,18 @@ public class Frame extends JPanel implements Runnable, ActionListener {
     private Font font1;
     int xPos,xDimButton;
     int yPos,yDimButton;
-    int fontSizeButton[] = new int[4];
-    Color colorButton[] = new Color[4];
+    int[] fontSizeButton = new int[4];
+    Color[] colorButton = new Color[4];
     static Timer timer;
-    BufferedImage images[] = new BufferedImage[6];
+    static Timer timer1;
+    int dotForWaiting=0;
+    BufferedImage[] images = new BufferedImage[6];
+    private String waitingString = "Waiting players ";
 
 
     public Frame(){
         timer = new Timer(20,this);
+        timer1 = new Timer(600,this);
         fontSizeButton[0]=fontSizeButton[1]=fontSizeButton[2]=fontSizeButton[3]=15;
         colorButton[0]=colorButton[1]=colorButton[2]=colorButton[3]= Color.WHITE;
         try{
@@ -60,8 +59,6 @@ public class Frame extends JPanel implements Runnable, ActionListener {
     }
 
     public void run(){
-        dot=Main.img.getSubimage(137,33,12,12);
-        Dot=Main.img.getSubimage(152,31,16,16);
         f.setTitle("Pacman");
         f.setIconImage(Main.img.getSubimage(20,1,13,13));
         timeForDots=clock.millis();
@@ -99,7 +96,7 @@ public class Frame extends JPanel implements Runnable, ActionListener {
         font = new Font("Dialog",Font.BOLD,15);
         g.setColor(Color.WHITE);
         //drawMatrix(g);
-        if(Main.stateOfGame!=0) {
+        if(Main.stateOfGame==2||Main.stateOfGame==1) {
             drawClip(g);
             drawMap(g);
             //Per disegnare al centro(di ogno quadrato corrispettivo), devo aggiundere la metà di dX e dY ad ogni print
@@ -113,7 +110,14 @@ public class Frame extends JPanel implements Runnable, ActionListener {
             drawLevel(g);
             drawReady(g);
         }else{
-            drawMenu(g);
+            if(Main.stateOfGame==0)
+                drawMenu(g);
+            else{
+               if(Main.stateOfGame==4){
+                   drawLobby(g);
+               }
+            }
+
         }
     }
 
@@ -594,6 +598,14 @@ public class Frame extends JPanel implements Runnable, ActionListener {
                }
                colorButton[3]=Color.YELLOW;
            }break;
+           case "Waiting":{
+               if(dotForWaiting<5){
+                   dotForWaiting++;
+
+               }else{
+                   dotForWaiting=0;
+               }
+           }break;
            default: {
                //Se non tocco nessuno, ritrasformo il colore e la dimensione dei pulsanti in quella originale
                if(fontSizeButton[0]>15){
@@ -619,5 +631,28 @@ public class Frame extends JPanel implements Runnable, ActionListener {
                timer.stop();
            }
        }
+    }
+
+    public void drawLobby(Graphics g){
+        font = font.deriveFont((float)20);
+        g.setColor(Color.WHITE);
+        g.setFont(font);
+
+        switch(dotForWaiting) {
+            case 0:{g.drawString(waitingString, Main.startx + (Main.dX / 2) - 5 + (Main.dX * 8), yPos + font.getSize() + yDimButton / 5);}break;
+            case 1:{g.drawString(waitingString + " .", Main.startx + (Main.dX / 2) - 5 + (Main.dX * 8), yPos + font.getSize() + yDimButton / 5);}break;
+            case 2:{g.drawString(waitingString + " . .", Main.startx + (Main.dX / 2) - 5 + (Main.dX * 8), yPos + font.getSize() + yDimButton / 5);}break;
+            case 3:{g.drawString(waitingString + " . . .", Main.startx + (Main.dX / 2) - 5 + (Main.dX * 8), yPos + font.getSize() + yDimButton / 5);}break;
+            case 4:{g.drawString(waitingString + " . . . .", Main.startx + (Main.dX / 2) - 5 + (Main.dX * 8), yPos + font.getSize() + yDimButton / 5);}break;
+            case 5:{g.drawString(waitingString + " . . . . .", Main.startx + (Main.dX / 2) - 5 + (Main.dX * 8), yPos + font.getSize() + yDimButton / 5);}break;
+
+        }
+        g.drawOval(Main.startx+(Main.dX/2)-5+(Main.dX*8), Main.starty+(Main.dY/2)-5+(Main.dY*6), 10, 10);
+        g.fillOval(Main.startx+(Main.dX/2)-5+(Main.dX*8), Main.starty+(Main.dY/2)-5+(Main.dY*6), 10, 10);
+        try {
+            for(int i=0;i<Main.server.numberOfPlayer;i++) {
+                g.drawImage(images[i + 1], Main.startx + (Main.dX * (9 + i)) + (Main.dX / 3) * (i + 1), Main.starty + (Main.dY * 6), Main.dX, Main.dY, null);
+            }
+        }catch (Exception e){}
     }
 }
