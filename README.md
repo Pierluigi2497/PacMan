@@ -5,3 +5,4 @@
 - [X] Make server or not  
 - [ ] Fix Pacman bug, he can't go in ghost's home
 - [ ] Make Options menu
+- [ ] Fix Pacman bug, respawn location after death
