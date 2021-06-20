@@ -6,3 +6,4 @@
 - [ ] Fix Pacman bug, he can't go in ghost's home
 - [ ] Make Options menu
 - [ ] Fix Pacman bug, respawn location after death
+- [ ] Fix Pacman bug, when reaspawn he move untill gamestart
